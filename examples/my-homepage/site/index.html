@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>나의 홈</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header><h1>나의 홈</h1>
+    <nav>
+      <button data-tab="memo" class="on">메모</button>
+      <button data-tab="todo">할 일</button>
+      <button data-tab="budget">가계부</button>
+    </nav>
+  </header>
+  <main>
+    <section id="memo" class="tab on">
+      <form id="memo-form"><input id="memo-input" placeholder="메모를 적고 Enter" autocomplete="off"><button>추가</button></form>
+      <ul id="memo-list"></ul>
+    </section>
+    <section id="todo" class="tab">
+      <form id="todo-form"><input id="todo-input" placeholder="할 일을 적고 Enter" autocomplete="off"><button>추가</button></form>
+      <ul id="todo-list"></ul>
+    </section>
+    <section id="budget" class="tab">
+      <form id="budget-form"><input id="budget-item" placeholder="항목 (예: 점심)" autocomplete="off"><input id="budget-amount" type="number" inputmode="numeric" placeholder="금액" class="amount"><button>추가</button></form>
+      <p id="budget-total" class="total"></p>
+      <ul id="budget-list"></ul>
+    </section>
+  </main>
+  <script src="tabs.js"></script>
+  <script src="store.js"></script>
+  <script src="memo.js"></script>
+  <script src="todo.js"></script>
+  <script src="budget.js"></script>
+</body>
+</html>

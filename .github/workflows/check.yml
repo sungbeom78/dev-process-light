@@ -1,0 +1,21 @@
+name: check
+on: [push, pull_request]
+jobs:
+  kit:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: kit check
+        run: python scripts/check_kit.py
+      - name: install twice (bash) and verify user files are kept
+        shell: bash
+        run: bash scripts/test_install.sh bash
+      - name: install twice (PowerShell)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: bash scripts/test_install.sh pwsh
