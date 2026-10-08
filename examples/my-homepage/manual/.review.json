@@ -1,0 +1,18 @@
+{
+ "pages": 26,
+ "files": {
+  "assets/manual.css": "828a000484f86d28",
+  "assets/manual.js": "082df3a3c684bd52",
+  "budget.html": "58ac8de369040b5a",
+  "index.html": "2c42a42ff345f1e0",
+  "memo.html": "25957625c2b34b13",
+  "todo.html": "23709ca294f8184c"
+ },
+ "overflow": [],
+ "sheets": [
+  ".manual-review/index.png",
+  ".manual-review/budget.png",
+  ".manual-review/memo.png",
+  ".manual-review/todo.png"
+ ]
+}

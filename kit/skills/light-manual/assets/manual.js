@@ -82,4 +82,5 @@
   if (m) { cur = parseInt(m[1], 10) - 1; var t = slides[cur]; if (t) t.scrollIntoView(); }
   if (/[?&]present\b/.test(location.search)) present(true);
   if (/[?&]export\b/.test(location.search)) body.classList.add("export");
+  if (/[?&]sheet\b/.test(location.search)) body.classList.add("sheet");
 })();

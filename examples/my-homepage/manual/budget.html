@@ -16,7 +16,7 @@
     <h1>가계부</h1>
     <p class="lead">쓴 돈을 적으면 이번 달 합계를 보여 줍니다</p>
   </div>
-  <aside class="notes">가계부 기능입니다. 쓴 돈을 적으면 이번 달에 쓴 돈의 합계를 바로 보여 줍니다.</aside>
+  <aside class="notes">가계부 기능입니다. 쓴 돈을 적으면 이번 달에 쓴 돈의 합계를 바로 보여 줍니다. 금액은 쉼표 없이 숫자만 적고, 달이 바뀌면 합계가 새로 시작됩니다.</aside>
 </section>
 
 <section class="slide" data-kind="overview" data-title="한눈에 보기">
@@ -42,7 +42,7 @@
       <div class="in"><div class="row"><div class="field">항목 (예: 점심)</div><div class="field">금액</div></div><b>이번 달 합계 0원</b></div>
     </div>
   </div>
-  <aside class="notes">첫 번째 단계. 위쪽의 가계부 버튼을 누릅니다. 항목 칸, 금액 칸, 그리고 이번 달 합계가 보입니다.</aside>
+  <aside class="notes">첫 번째 단계. 위쪽의 가계부 버튼을 누릅니다. 항목 칸, 금액 칸, 그리고 이번 달 합계가 보입니다. 처음에는 합계가 0원으로 나옵니다.</aside>
 </section>
 
 <section class="slide" data-kind="step" data-title="2단계. 항목과 금액 적기">
@@ -82,11 +82,20 @@
   <p class="kicker">따라 하기 · 4 / 4</p>
   <h2>잘못 적은 줄은 <span class="ui">×</span> → 합계도 다시 계산</h2>
   <div class="body">
-    <ol class="flow">
-      <li class="bad"><b>잘못 적음</b><span>점심 90000</span></li>
-      <li><b>× 누르기</b><span>그 줄 지우기</span></li>
-      <li class="on"><b>다시 적기</b><span>점심 9000</span></li>
-    </ol>
+    <div class="row">
+      <ol class="flow v">
+        <li class="bad"><b>잘못 적음</b><span>점심 90000</span></li>
+        <li><b>× 누르기</b><span>그 줄 지우기</span></li>
+        <li class="on"><b>다시 적기</b><span>점심 9000</span></li>
+      </ol>
+      <div class="screen">
+        <div class="top"><span class="t">나의 홈</span><span class="tab on">가계부</span></div>
+        <div class="in">
+          <div class="item"><span>점심 90000원</span><span class="hl">×</span></div>
+          <div class="item"><span>버스 1500원</span><span>×</span></div>
+        </div>
+      </div>
+    </div>
   </div>
   <aside class="notes">네 번째 단계. 잘못 적은 줄은 고치는 기능이 없으니, 엑스로 지우고 다시 적으세요. 지우면 합계도 바로 다시 계산됩니다.</aside>
 </section>

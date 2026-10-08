@@ -34,7 +34,7 @@ main.m-deck { padding: 1.2rem 1rem 3rem; counter-reset: slide; }
 .slide h1 { font-size: 3.1em; }
 .slide p { margin: 0; }
 .slide .lead { font-size: 1.25em; color: var(--muted); }
-.slide .body { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 1em; min-height: 0; }
+.slide .body { flex: 1; display: flex; flex-direction: column; justify-content: safe center; gap: 1em; min-height: 0; }
 .slide .row { display: flex; gap: 1.4em; align-items: stretch; }
 .slide .row > * { flex: 1; min-width: 0; }
 .slide small, .slide .muted { color: var(--muted); }
@@ -63,8 +63,14 @@ main.m-deck { padding: 1.2rem 1rem 3rem; counter-reset: slide; }
 .flow > li span, .flow > li small { color: var(--muted); font-size: .9em; }
 .flow > li.on { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
 .flow > li.on span, .flow > li.on small { color: #effaf1; }
+.flow > li.on code { background: rgba(255,255,255,.22); color: #fff; }
+.flow:has(> li:nth-child(5)) { gap: 1.6em; }
+.flow:has(> li:nth-child(5)) > li { font-size: .88em; padding-left: .5em; padding-right: .5em; }
+.flow:has(> li:nth-child(5)) > li:not(:last-child)::after { right: -1.35em; }
+.flow > li { overflow-wrap: anywhere; }
 .flow > li.warn { background: #fdf0dc; border-color: var(--warn); }
 .flow > li.bad { background: #fbe5e2; border-color: var(--bad); }
+.flow > li.ok { background: #e6f4e8; border-color: var(--accent-2); }
 .flow.v { flex-direction: column; gap: 1.5em; max-width: 34em; }
 .flow.v > li { text-align: left; padding: .7em 1em .7em 3em; }
 .flow.v > li::before { top: 50%; left: 1.4em; transform: translate(-50%, -50%); }
@@ -72,7 +78,7 @@ main.m-deck { padding: 1.2rem 1rem 3rem; counter-reset: slide; }
 .loop { text-align: center; color: var(--accent); font-weight: 700; border-top: .14em dashed var(--accent); padding-top: .4em; }
 
 /* 카드: <div class="cards"><div class="card"><i>🗒️</i><b>제목</b><span>설명</span></div></div> */
-.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(11em, 1fr)); gap: 1em; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(12.5em, 1fr)); gap: 1em; }
 .card { background: var(--soft); border-radius: var(--radius); padding: 1em; display: flex; flex-direction: column; gap: .35em; border: .1em solid var(--line); }
 a.card { color: inherit; text-decoration: none; }
 a.card:hover { border-color: var(--accent); }
@@ -109,7 +115,8 @@ a.card:hover { border-color: var(--accent); }
 /* 트리 / 구성도 */
 .tree { font-family: var(--mono); background: var(--soft); border-radius: var(--radius); padding: .9em 1.1em; white-space: pre; font-size: .92em; line-height: 1.6; }
 .diagram { display: flex; align-items: center; justify-content: center; }
-.diagram svg { width: 100%; height: auto; max-height: 100%; }
+.diagram { flex: 1; min-height: 0; }
+.diagram svg { width: 100%; height: 100%; max-height: 100%; }
 .slide svg text { font-family: var(--font); }
 
 /* 강조 상자 · 큰 숫자 · 표 */
@@ -120,6 +127,54 @@ a.card:hover { border-color: var(--accent); }
 table.grid { border-collapse: collapse; width: 100%; font-size: .92em; }
 table.grid th, table.grid td { border-bottom: .08em solid var(--line); padding: .45em .6em; text-align: left; vertical-align: top; }
 table.grid th { background: var(--soft); }
+
+/* 터미널: <div class="term"><p class="c">명령</p><p class="o">출력</p><p class="ok">성공</p><p class="err">실패</p></div> */
+.term { background: #16201b; color: #d9e7dd; border-radius: .7em; font-family: var(--mono); font-size: .8em; overflow: hidden; }
+.term::before { content: "● ● ●"; display: block; padding: .35em .9em; background: #26332c; color: #6f8a7b; letter-spacing: .2em; font-size: .8em; }
+.term p { margin: 0; padding: .05em 1em; white-space: pre-wrap; line-height: 1.45; }
+.term p:first-of-type { padding-top: .6em; } .term p:last-child { padding-bottom: .7em; }
+.term .c::before { content: "$ "; color: #7fd19b; }
+.term .c { color: #fff; } .term .o { color: #b9c9be; } .term .dim { color: #6f8a7b; }
+.term .ok { color: #7fd19b; } .term .ok::before { content: "✔ "; }
+.term .err { color: #ff9b8f; } .term .err::before { content: "✖ "; }
+.term .warn { color: #f3c46b; }
+
+/* 상태 표시: <span class="badge ok">PASS</span> */
+.badge { display: inline-block; font-size: .75em; font-weight: 700; border-radius: 999px; padding: .1em .6em; background: var(--soft); color: var(--ink); border: .1em solid var(--line); white-space: nowrap; }
+.badge.ok { background: #e2f3e5; color: #1f6b33; border-color: #a9d8b2; }
+.badge.warn { background: #fdf0dc; color: #8a5a0b; border-color: #efc98a; }
+.badge.bad { background: #fbe5e2; color: #9b2a1f; border-color: #eeb0a8; }
+.badge.info { background: #e1f0f4; color: #23606f; border-color: #a9d3de; }
+
+/* 레인(누가 무엇을): <div class="lanes"><div class="lane"><b>사용자</b><ol class="flow">..</ol></div>..</div> */
+.lanes { display: flex; flex-direction: column; gap: 1.25em; }
+.lane { display: grid; grid-template-columns: 7.5em 1fr; gap: .8em; align-items: center; }
+.lane > b { background: var(--accent); color: #fff; border-radius: .5em; padding: .5em .6em; text-align: center; font-size: .9em; }
+.lane > .flow > li { padding: 1.4em .6em .6em; }
+
+/* 계층(스택): <div class="stack"><div><b>층 이름</b><span>설명</span></div>..</div>  (위가 사용자 쪽) */
+.stack { display: flex; flex-direction: column; gap: .35em; }
+.stack > div { display: grid; grid-template-columns: 10em 1fr; gap: 1em; align-items: center; background: var(--soft); border-left: .45em solid var(--accent-2); border-radius: .5em; padding: .45em .9em; }
+.stack > div:nth-child(2n) { border-left-color: var(--info); }
+.stack > div > span { color: var(--muted); font-size: .9em; }
+.stack > div > code { justify-self: start; }
+
+/* 타임라인: <ol class="timeline"><li><b>날짜·단계</b><span>내용</span></li>..</ol> */
+.timeline { list-style: none; margin: 0; padding: 0; display: flex; gap: 0; position: relative; }
+.timeline::before { content: ""; position: absolute; left: 0; right: 0; top: .55em; height: .2em; background: var(--line); }
+.timeline > li { flex: 1; position: relative; padding-top: 1.6em; text-align: center; display: flex; flex-direction: column; gap: .2em; }
+.timeline > li::before { content: ""; position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 1.2em; height: 1.2em; border-radius: 50%; background: var(--accent); border: .2em solid #fff; }
+.timeline > li.on::before { background: var(--accent-2); } .timeline > li.bad::before { background: var(--bad); }
+.timeline > li span { color: var(--muted); font-size: .88em; }
+
+/* 키-값 / 체크리스트 */
+.kv { display: grid; grid-template-columns: max-content 1fr; gap: .35em 1.2em; font-size: .92em; }
+.kv > b { color: var(--accent); }
+ul.check { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: .45em 1.4em; }
+ul.check > li { padding-left: 1.6em; position: relative; }
+ul.check > li::before { content: "☐"; position: absolute; left: 0; color: var(--accent); }
+ul.check > li.done::before { content: "☑"; }
+.legend { display: flex; gap: 1em; flex-wrap: wrap; font-size: .8em; color: var(--muted); }
 
 /* ---------- 노트 (강의 대본) ---------- */
 .slide > aside.notes { display: none; }
@@ -141,6 +196,13 @@ body.export { background: #fff; }
 body.export .m-bar { display: none; }
 body.export main.m-deck { padding: 0; }
 body.export .slide { width: 1280px; margin: 0 0 20px; border-radius: 0; box-shadow: none; }
+
+/* ---------- 미리보기 시트 (manual-review): 한 장에 모든 페이지 ---------- */
+body.sheet { background: #9aa59f; }
+body.sheet .m-bar, body.sheet aside.notes { display: none; }
+body.sheet main.m-deck { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding: 14px; width: 1900px; }
+body.sheet .slide { width: 100%; margin: 0; border-radius: 4px; }
+body.sheet .slide::after { font-size: 2.2cqw; color: #fff; background: #2d4a3e; padding: 0 .4em; border-radius: .3em; }
 
 /* ---------- 인쇄: 슬라이드 한 장 = 16:9 한 쪽 ---------- */
 @page { size: 13.333in 7.5in; margin: 0; }
