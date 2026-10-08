@@ -20,7 +20,7 @@ the AI says "done" but it doesn't work; there's no easy way back; the AI keeps r
 | `light-undo` | when something broke | shows saves in plain words and reverts the chosen one **without deleting history**, then re-checks |
 | `light-manual` | first build, new feature, changed usage | creates or updates the user manual in `manual/` in the same save, then **shows it in the chat**; "show me the manual" any time |
 
-`AGENTS.md` adds eleven rules; the two that matter most: *say so before touching another feature's files*, and
+`AGENTS.md` adds twelve rules (the skills and the rule block are never edited inside a project -- put project rules outside the block); the two that matter most: *say so before touching another feature's files*, and
 *after three failed attempts at the same problem, stop and explain in plain words*.
 Notes live in `dev-notes/`: `NOW.md` (current state), `FEATURES.md` (feature map: status, files, one-line check),
 `DECISIONS.md`, `NAMES.md` (screen words ↔ code names).
