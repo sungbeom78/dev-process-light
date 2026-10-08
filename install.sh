@@ -2,7 +2,7 @@
 # dev-process-light 설치 -- macOS / Linux / Windows(Git Bash)
 #   bash install.sh [프로젝트 폴더]      (생략하면 현재 폴더)
 # 하는 일:
-#   - 스킬 5개를 .claude/skills (Claude Code) 와 .agents/skills (Codex) 에 복사 (있으면 새 버전으로 갱신)
+#   - 스킬 6개를 .claude/skills (Claude Code) 와 .agents/skills (Codex) 에 복사 (있으면 새 버전으로 갱신)
 #   - dev-notes/ 기록 파일은 없을 때만 만든다 (이미 쓰던 기록은 절대 덮어쓰지 않는다)
 #   - AGENTS.md 에 규칙 블록을 넣거나 갱신한다 (내가 쓴 다른 내용은 그대로 둔다)
 #   - CLAUDE.md 가 AGENTS.md 를 읽게 한다
@@ -28,7 +28,7 @@ for host in .claude/skills .agents/skills; do
     rm -rf "$TARGET/$host/$name"
     cp -R "$skill" "$TARGET/$host/$name"
   done
-  echo "  [OK] 스킬 5개 -> $host"
+  echo "  [OK] 스킬 $(ls -d "$KIT"/skills/*/ | wc -l | tr -d " ")개 -> $host"
 done
 
 # 2) 기록 파일 (없을 때만)

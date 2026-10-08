@@ -1,11 +1,14 @@
-// 할 일: 적고, 체크하면 줄이 그어지고, 새로고침해도 남는다 (localStorage "todo")
+// 할 일: 적고, 체크하면 줄이 그어지고 목록 맨 아래로, 새로고침해도 남는다 (localStorage "todo")
 (function () {
   var todos = store.load("todo");
   var list = document.getElementById("todo-list");
   function save() { store.save("todo", todos); }
   function render() {
     list.innerHTML = "";
-    todos.forEach(function (todo, index) {
+    var order = todos.map(function (todo, index) { return index; });
+    order.sort(function (a, b) { return (todos[a].done - todos[b].done) || (a - b); });   // 끝난 일은 아래로
+    order.forEach(function (index) {
+      var todo = todos[index];
       var li = document.createElement("li"); if (todo.done) li.className = "done";
       var check = document.createElement("input"); check.type = "checkbox"; check.checked = todo.done;
       check.onchange = function () { todo.done = check.checked; save(); render(); };

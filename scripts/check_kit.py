@@ -14,7 +14,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 KIT = ROOT / "kit"
-SKILLS = ["light-resume", "light-start", "light-check", "light-save", "light-undo"]
+SKILLS = ["light-resume", "light-start", "light-check", "light-save", "light-undo", "light-manual"]
 NOTES = ["NOW.md", "FEATURES.md", "DECISIONS.md", "NAMES.md"]
 errors: list[str] = []
 

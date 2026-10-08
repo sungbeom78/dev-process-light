@@ -26,7 +26,7 @@ foreach ($hostDir in @(".claude\skills", ".agents\skills")) {
     if (Test-Path $d) { Remove-Item -Recurse -Force $d }
     Copy-Item -Recurse $_.FullName $d
   }
-  Write-Host "  [OK] 스킬 5개 -> $hostDir"
+  Write-Host "  [OK] 스킬 $((Get-ChildItem -Directory (Join-Path $Kit "skills")).Count)개 -> $hostDir"
 }
 
 # 2) 기록 파일 (없을 때만)

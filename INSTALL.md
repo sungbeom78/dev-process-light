@@ -15,7 +15,7 @@ bash <임시폴더>/dev-process-light/install.sh <프로젝트 폴더>          
 
 | 저장소 파일 | 프로젝트에 만들 위치 | 이미 있으면 |
 |---|---|---|
-| `kit/skills/<이름>/SKILL.md` (5개) | `.claude/skills/<이름>/SKILL.md` 와 `.agents/skills/<이름>/SKILL.md` | 새 버전으로 바꾼다 |
+| `kit/skills/<이름>/SKILL.md` (6개) | `.claude/skills/<이름>/SKILL.md` 와 `.agents/skills/<이름>/SKILL.md` | 새 버전으로 바꾼다 |
 | `kit/dev-notes/*.md` (4개) | `dev-notes/*.md` | **건드리지 않는다** (사용자 기록) |
 | `kit/AGENTS.md` | `AGENTS.md` | `<!-- dev-process-light:begin -->` ~ `end` 블록만 바꾸고, 블록이 없으면 끝에 붙인다 |
 | `kit/CLAUDE.md` | `CLAUDE.md` | `@AGENTS.md` 줄이 없을 때만 끝에 붙인다 |

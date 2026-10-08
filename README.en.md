@@ -1,7 +1,7 @@
 # dev-process-light
 
 **A lightweight working agreement for building your own multi-feature website with an AI coding agent -- so it doesn't break as it grows.**
-Five Agent Skills for Claude Code and Codex plus four plain-Markdown notes. Nothing to install besides git.
+Six Agent Skills for Claude Code and Codex, four plain-Markdown notes, and a user manual that grows with the site. Nothing to install besides git.
 
 [한국어](README.md)
 
@@ -18,8 +18,9 @@ the AI says "done" but it doesn't work; there's no easy way back; the AI keeps r
 | `light-check` | before saying "done" | the AI **actually runs and opens** things; reports ✅ verified (and how) / 👀 please look / ❓ couldn't check; re-checks every other feature |
 | `light-save` | after checking | commits only this task's files and updates the notes -- a point you can return to |
 | `light-undo` | when something broke | shows saves in plain words and reverts the chosen one **without deleting history**, then re-checks |
+| `light-manual` | first build, new feature, changed usage | creates or updates the user manual in `manual/` in the same save, then **shows it in the chat**; "show me the manual" any time |
 
-`AGENTS.md` adds ten rules; the two that matter most: *say so before touching another feature's files*, and
+`AGENTS.md` adds eleven rules; the two that matter most: *say so before touching another feature's files*, and
 *after three failed attempts at the same problem, stop and explain in plain words*.
 Notes live in `dev-notes/`: `NOW.md` (current state), `FEATURES.md` (feature map: status, files, one-line check),
 `DECISIONS.md`, `NAMES.md` (screen words ↔ code names).
