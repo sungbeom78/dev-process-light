@@ -12,6 +12,11 @@ import re
 import sys
 from pathlib import Path
 
+try:   # Windows 콘솔(cp1252/cp949)에서 한글 출력이 깨지거나 멈추지 않게
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+except Exception:  # noqa: BLE001
+    pass
+
 ROOT = Path(__file__).resolve().parents[1]
 KIT = ROOT / "kit"
 SKILLS = ["light-resume", "light-start", "light-check", "light-save", "light-undo", "light-manual"]

@@ -6,15 +6,17 @@ MODE="${1:-bash}"
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 T="$(mktemp -d)/my project"          # 공백이 든 경로로 시험
 mkdir -p "$T"
+# PowerShell 에는 Windows 경로로 넘긴다 (Git Bash 의 /tmp/... 는 pwsh 가 모름)
+winpath() { if command -v cygpath >/dev/null 2>&1; then cygpath -w "$1"; else printf '%s' "$1"; fi; }
 run() {
-  if [ "$MODE" = pwsh ]; then pwsh -NoProfile -ExecutionPolicy Bypass -File "$ROOT/install.ps1" "$T" >/dev/null
+  if [ "$MODE" = pwsh ]; then pwsh -NoProfile -ExecutionPolicy Bypass -File "$(winpath "$ROOT/install.ps1")" "$(winpath "$T")" >/dev/null
   else bash "$ROOT/install.sh" "$T" >/dev/null; fi
 }
 fail() { echo "FAIL: $*"; exit 1; }
 
 printf '# 내 규칙\n원래 내용\n' > "$T/AGENTS.md"
 run
-for s in light-resume light-start light-check light-save light-undo; do
+for s in light-resume light-start light-check light-save light-undo light-manual; do
   [ -f "$T/.claude/skills/$s/SKILL.md" ] && [ -f "$T/.agents/skills/$s/SKILL.md" ] || fail "skill $s"
 done
 for n in NOW FEATURES DECISIONS NAMES; do [ -f "$T/dev-notes/$n.md" ] || fail "dev-notes/$n.md"; done

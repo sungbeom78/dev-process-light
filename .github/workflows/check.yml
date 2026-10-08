@@ -3,12 +3,15 @@ on: [push, pull_request]
 jobs:
   kit:
     runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUTF8: "1"          # Windows 러너 기본 콘솔(cp1252)에서 한글 출력
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with: { python-version: "3.12" }
       - name: kit check
         run: python scripts/check_kit.py
@@ -17,5 +20,5 @@ jobs:
         run: bash scripts/test_install.sh bash
       - name: install twice (PowerShell)
         if: runner.os == 'Windows'
-        shell: pwsh
+        shell: bash            # 스크립트 안에서 pwsh 로 install.ps1 을 실행한다
         run: bash scripts/test_install.sh pwsh
