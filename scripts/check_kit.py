@@ -65,6 +65,19 @@ for n in NOTES:
     if not (KIT / "dev-notes" / n).exists():
         errors.append(f"kit/dev-notes/{n} 없음")
 
+LM = KIT / "skills" / "light-manual"
+for f in ("assets/manual.css", "assets/manual.js", "templates/index.html", "templates/chapter.html", "manual_tool.py"):
+    if not (LM / f).is_file():
+        errors.append(f"light-manual/{f} 없음")
+ex = ROOT / "examples" / "my-homepage" / "manual"
+for a in ("manual.css", "manual.js"):
+    if (ex / "assets" / a).read_bytes() != (LM / "assets" / a).read_bytes():
+        errors.append(f"예시 manual/assets/{a} 가 스킬 assets 와 다름")
+sys.dont_write_bytecode = True   # kit 안에 __pycache__ 를 만들지 않는다 (설치될 때 같이 복사됨)
+sys.path.insert(0, str(LM))
+import manual_tool  # noqa: E402
+errors += [f"예시 설명서: {p}" for p in manual_tool.check(ex)]
+
 for doc in [ROOT / "README.md", ROOT / "README.en.md", ROOT / "INSTALL.md", *ROOT.glob("examples/**/*.md")]:
     for link in re.findall(r"\]\(([^)#]+)\)", doc.read_text(encoding="utf-8")):
         if link.startswith(("http://", "https://", "mailto:")):
@@ -73,7 +86,7 @@ for doc in [ROOT / "README.md", ROOT / "README.en.md", ROOT / "INSTALL.md", *ROO
             errors.append(f"{doc.relative_to(ROOT)}: 깨진 링크 {link}")
 
 for f in ROOT.rglob("*"):
-    if f.is_file() and ".git" not in f.parts and f.suffix in {".md", ".sh", ".ps1", ".py", ".yml", ".html", ".js", ".css", ""}:
+    if f.is_file() and ".git" not in f.parts and "__pycache__" not in f.parts and f.suffix in {".md", ".sh", ".ps1", ".py", ".yml", ".html", ".js", ".css", ""}:
         raw = f.read_bytes()
         if raw.startswith(b"\xef\xbb\xbf"):
             errors.append(f"{f.relative_to(ROOT)}: BOM")

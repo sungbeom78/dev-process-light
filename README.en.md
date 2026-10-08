@@ -18,7 +18,7 @@ the AI says "done" but it doesn't work; there's no easy way back; the AI keeps r
 | `light-check` | before saying "done" | the AI **actually runs and opens** things; reports ✅ verified (and how) / 👀 please look / ❓ couldn't check; re-checks every other feature |
 | `light-save` | after checking | commits only this task's files and updates the notes -- a point you can return to |
 | `light-undo` | when something broke | shows saves in plain words and reverts the chosen one **without deleting history**, then re-checks |
-| `light-manual` | first build, new feature, changed usage | creates or updates the user manual in `manual/` in the same save, then **shows it in the chat**; "show me the manual" any time |
+| `light-manual` | first build, new feature, changed usage | creates or updates the user manual in `manual/` -- HTML slides (a 16:9 page per step, a diagram and a narration script on every page; present, print to PDF or export to pptx) -- in the same save, then **shows it in the chat** |
 
 `AGENTS.md` adds twelve rules (the skills and the rule block are never edited inside a project -- put project rules outside the block); the two that matter most: *say so before touching another feature's files*, and
 *after three failed attempts at the same problem, stop and explain in plain words*.

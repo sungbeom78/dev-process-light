@@ -2,7 +2,7 @@
 
 이 예시는 **실제로 수행한 기록**입니다. dev-process-light 를 설치한 빈 폴더에서 기능 3개를 차례로 붙이고,
 중간에 생긴 문제와 되돌리기까지 그대로 남겼습니다.
-결과 파일: [`site/`](site/index.html) · 사용설명서: [`manual/`](manual/README.md) · 기록: [`dev-notes/`](dev-notes/FEATURES.md) · 저장 목록: [`git-log.txt`](git-log.txt) ·
+결과 파일: [`site/`](site/index.html) · 사용설명서: [`manual/`](manual/index.html) · 기록: [`dev-notes/`](dev-notes/FEATURES.md) · 저장 목록: [`git-log.txt`](git-log.txt) ·
 휴대폰 화면: [`screenshot-mobile.png`](screenshot-mobile.png)
 
 `site/index.html` 을 브라우저로 열면 바로 써 볼 수 있습니다 (서버·설치 필요 없음).
@@ -105,6 +105,8 @@ AI는 저장 목록을 쉬운 말로 보여 주고, 무엇이 바뀌는지 말�
 되돌린 뒤 모든 기능을 다시 확인하고, 이유를 기록과 함께 한 번에 저장했습니다.
 
 ## 5. 사용설명서 처음 만들기 (0.2.0)
+> 0.3.0 에서 설명서 형식이 HTML 슬라이드로 바뀌어, 아래 파일 이름은 현재(HTML) 기준입니다. 형식 변환은 7장.
+
 dev-process-light 를 0.2.0 으로 다시 설치했습니다. 스킬만 새 버전으로 바뀌고 기록(`dev-notes/`)은 그대로입니다.
 ```
 bash ~/dev-process-light/install.sh my-homepage     → 스킬 6개, [유지] dev-notes 4장, AGENTS.md 규칙 블록 갱신
@@ -113,10 +115,10 @@ bash ~/dev-process-light/install.sh my-homepage     → 스킬 6개, [유지] de
 
 AI가 기능 지도의 기능마다 장을 하나씩 만듭니다 (`light-manual`).
 ```
-manual/README.md   목차: 시작하기 · 기능 목록 · 바뀐 점
-manual/memo.md     메모        (따라 하기 3단계)
-manual/todo.md     할 일       (따라 하기 4단계)
-manual/budget.md   가계부      (따라 하기 4단계)
+manual/index.html   목차: 표지 · 한눈에 · 시작하기(2쪽) · 기능 목록 · 바뀐 점
+manual/memo.html    메모        (따라 하기 3단계 = 3쪽)
+manual/todo.html    할 일       (따라 하기 4단계 = 4쪽)
+manual/budget.html  가계부      (따라 하기 4단계 = 4쪽)
 ```
 그리고 **설명서에 쓴 그대로 따라 해 봅니다.** 코드 이름이 아니라 화면에 보이는 글자로 눌러 봅니다
 ("[할 일] 버튼", "할 일을 적고 Enter 칸"). 처음 쓰는 사람처럼 빈 브라우저에서 합니다.
@@ -145,7 +147,7 @@ manual/budget.md   가계부      (따라 하기 4단계)
   - [ ] 새로고침해도 순서와 체크가 그대로다
 - 건드릴 기능: 할 일 -- todo.js 만
 - 영향 받을 수 있는 기능: 없음 (함께 쓰는 파일을 건드리지 않음)
-- 설명서: 고침 (manual/todo.md 3단계, 바뀐 점)
+- 설명서: 고침 (manual/todo.html 3단계 페이지, 바뀐 점)
 ```
 확인 단계에서 바뀐 설명서를 다시 따라 하고, 다른 기능도 점검합니다.
 ```
@@ -156,17 +158,30 @@ manual/budget.md   가계부      (따라 하기 4단계)
 코드·설명서·기록이 **한 번에** 저장됩니다.
 ```
 수정: 체크한 할 일은 목록 맨 아래로
-  todo.js · manual/todo.md · manual/README.md · dev-notes/FEATURES.md · dev-notes/NOW.md
+  todo.js · manual/todo.html · manual/index.html · dev-notes/FEATURES.md · dev-notes/NOW.md
 ```
 채팅에는 바뀐 부분만 그대로 보여 줍니다.
 ```
-manual/todo.md
+manual/todo.html -- 3단계 페이지
   3. 끝난 일 왼쪽의 네모 칸을 누릅니다. 체크 표시가 되고 글자에 줄이 그어지며, 목록 맨 아래로 내려갑니다.
-manual/README.md -- 바뀐 점
+manual/index.html -- 바뀐 점
   - 2026-10-08 할 일: 체크한 일은 목록 맨 아래로 내려갑니다 (할 일 3단계)
-저장 위치: manual/README.md
+열기: manual/index.html (브라우저 · P = 발표 · N = 대본)
 ```
 4번의 "파란색으로 바꾸기"처럼 **색만 바꾼 작업은 사용법이 같으므로 설명서는 해당 없음**입니다.
+
+## 7. 설명서를 HTML 슬라이드로 (0.3.0)
+설명서 규칙이 바뀌어(웹페이지 기본 + pptx 페이지 모양 + 그림 위주 + 페이지마다 대본) 4장을 다시 만들었습니다.
+
+| 장 | 쪽 | 그림 |
+|---|---|---|
+| 목차 `index.html` | 6 | 기능 카드 · 시작하기 순서도 · 화면 흉내 · 바뀐 점 표 |
+| 메모 `memo.html` | 6 | 한눈에 순서도 · 단계마다 화면(누르는 곳 강조) · 남는 것/사라지는 것 비교 |
+| 할 일 `todo.html` | 7 | 체크 전/후 화면 나란히 (바뀐 사용법) |
+| 가계부 `budget.html` | 7 | 이렇게/이렇게 말고 비교 · 고치는 순서도 |
+
+확인: `manual_tool.py check` 통과(페이지마다 그림·대본, 단계 페이지, 링크), 실제 브라우저로 26쪽을 열어 넘침·깨짐 없음,
+`manual_tool.py pptx` 로 26장 pptx(대본은 발표자 노트) 생성.
 
 ## 최종 저장 목록
 ```
@@ -182,4 +197,4 @@ manual/README.md -- 바뀐 점
 ```
 저장 하나하나가 "되돌아올 수 있는 지점"입니다. 다음 날 `light-resume` 을 하면 AI가 이 목록과 `NOW.md` 를 읽고
 "가계부 2단계: 지난달과 비교 -- 아직 정하지 않음" 부터 이어 갑니다.
-"사용설명서 보여 줘"라고 하면 `manual/README.md` 목차를, "가계부 설명 보여 줘"라고 하면 그 장을 보여 줍니다.
+"사용설명서 보여 줘"라고 하면 `manual/index.html` 목차를, "가계부 설명 보여 줘"라고 하면 그 장을 보여 줍니다.

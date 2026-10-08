@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>가계부 — 나의 홈 사용설명서</title>
+<link rel="stylesheet" href="assets/manual.css">
+<script defer src="assets/manual.js"></script>
+</head>
+<body data-manual="나의 홈 사용설명서" data-index="index.html"
+      data-chapters="index.html|처음;memo.html|메모;todo.html|할 일;budget.html|가계부">
+
+<section class="slide" data-kind="cover" data-title="가계부">
+  <div class="body">
+    <div class="emoji">💰</div>
+    <h1>가계부</h1>
+    <p class="lead">쓴 돈을 적으면 이번 달 합계를 보여 줍니다</p>
+  </div>
+  <aside class="notes">가계부 기능입니다. 쓴 돈을 적으면 이번 달에 쓴 돈의 합계를 바로 보여 줍니다.</aside>
+</section>
+
+<section class="slide" data-kind="overview" data-title="한눈에 보기">
+  <p class="kicker">한눈에 보기</p>
+  <h2>네 단계</h2>
+  <div class="body">
+    <ol class="flow">
+      <li><b>[가계부] 누르기</b><span>위쪽 버튼</span></li>
+      <li><b>항목·금액 적기</b><span>숫자만</span></li>
+      <li class="on"><b>[추가]</b><span>합계가 늘어남</span></li>
+      <li><b>× 로 고치기</b><span>합계 다시 계산</span></li>
+    </ol>
+  </div>
+  <aside class="notes">가계부는 네 단계입니다. 가계부 버튼을 누르고, 항목과 금액을 적고, 추가를 누르면 합계가 늘어납니다. 잘못 적었으면 엑스로 지우면 합계도 다시 계산됩니다.</aside>
+</section>
+
+<section class="slide" data-kind="step" data-title="1단계. [가계부] 누르기">
+  <p class="kicker">따라 하기 · 1 / 4</p>
+  <h2>위쪽 <span class="ui">가계부</span> 버튼을 누릅니다</h2>
+  <div class="body">
+    <div class="screen">
+      <div class="top"><span class="t">나의 홈</span><span class="tab">메모</span><span class="tab">할 일</span><span class="tab on hl">가계부</span></div>
+      <div class="in"><div class="row"><div class="field">항목 (예: 점심)</div><div class="field">금액</div></div><b>이번 달 합계 0원</b></div>
+    </div>
+  </div>
+  <aside class="notes">첫 번째 단계. 위쪽의 가계부 버튼을 누릅니다. 항목 칸, 금액 칸, 그리고 이번 달 합계가 보입니다.</aside>
+</section>
+
+<section class="slide" data-kind="step" data-title="2단계. 항목과 금액 적기">
+  <p class="kicker">따라 하기 · 2 / 4</p>
+  <h2>무엇에 썼는지, 얼마인지 적습니다</h2>
+  <div class="body">
+    <div class="row">
+      <div class="screen">
+        <div class="top"><span class="t">가계부</span></div>
+        <div class="in"><div class="row"><div class="field hl">점심</div><div class="field hl">9000</div></div></div>
+      </div>
+      <div class="compare">
+        <div class="good"><h3>이렇게</h3><code>9000</code></div>
+        <div class="bad"><h3>이렇게 말고</h3><code>9,000원</code> · <code>0</code></div>
+      </div>
+    </div>
+  </div>
+  <aside class="notes">두 번째 단계. 항목 칸에 무엇에 썼는지, 예를 들어 점심이라고 적고, 금액 칸에는 숫자만 적습니다. 쉼표나 원은 적지 않습니다. 0원은 들어가지 않습니다.</aside>
+</section>
+
+<section class="slide" data-kind="step" data-title="3단계. [추가] 누르기">
+  <p class="kicker">따라 하기 · 3 / 4</p>
+  <h2><span class="ui">추가</span> → 목록 맨 위 + 합계가 늘어납니다</h2>
+  <div class="body">
+    <div class="row">
+      <div class="screen">
+        <div class="top"><span class="t">가계부</span></div>
+        <div class="in"><b class="hl">이번 달 합계 9,000원</b><div class="item hl">2026-10 · 점심 <b>9,000원</b> <span>×</span></div></div>
+      </div>
+      <div class="callout">합계는 <b>이번 달</b> 것만 더합니다.<br>지난달 줄은 목록에만 남습니다</div>
+    </div>
+  </div>
+  <aside class="notes">세 번째 단계. 추가 버튼을 누르면 목록 맨 위에 이번 달과 항목, 금액이 생기고, 위쪽 이번 달 합계가 늘어납니다. 합계는 이번 달 것만 더하고, 지난달 기록은 목록에만 남습니다.</aside>
+</section>
+
+<section class="slide" data-kind="step" data-title="4단계. × 로 고치기">
+  <p class="kicker">따라 하기 · 4 / 4</p>
+  <h2>잘못 적은 줄은 <span class="ui">×</span> → 합계도 다시 계산</h2>
+  <div class="body">
+    <ol class="flow">
+      <li class="bad"><b>잘못 적음</b><span>점심 90000</span></li>
+      <li><b>× 누르기</b><span>그 줄 지우기</span></li>
+      <li class="on"><b>다시 적기</b><span>점심 9000</span></li>
+    </ol>
+  </div>
+  <aside class="notes">네 번째 단계. 잘못 적은 줄은 고치는 기능이 없으니, 엑스로 지우고 다시 적으세요. 지우면 합계도 바로 다시 계산됩니다.</aside>
+</section>
+
+<section class="slide" data-kind="data" data-title="데이터는 어디에">
+  <p class="kicker">알아 두면 좋은 점</p>
+  <h2>가계부도 이 컴퓨터의 브라우저에 남습니다</h2>
+  <div class="body">
+    <div class="compare">
+      <div class="good"><h3>남아 있어요</h3>새로고침해도 · 다시 열어도</div>
+      <div class="bad"><h3>보이지 않아요</h3>다른 기기에서<br>브라우저 사이트 데이터 삭제 후</div>
+    </div>
+  </div>
+  <aside class="notes">가계부 기록도 이 컴퓨터의 브라우저에 저장됩니다. 다른 기기에서는 보이지 않고, 브라우저 사이트 데이터를 지우면 함께 사라집니다.</aside>
+</section>
+
+</body>
+</html>

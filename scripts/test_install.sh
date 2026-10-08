@@ -19,6 +19,9 @@ run
 for s in light-resume light-start light-check light-save light-undo light-manual; do
   [ -f "$T/.claude/skills/$s/SKILL.md" ] && [ -f "$T/.agents/skills/$s/SKILL.md" ] || fail "skill $s"
 done
+for f in assets/manual.css assets/manual.js templates/index.html manual_tool.py; do
+  [ -f "$T/.claude/skills/light-manual/$f" ] || fail "light-manual/$f"
+done
 for n in NOW FEATURES DECISIONS NAMES; do [ -f "$T/dev-notes/$n.md" ] || fail "dev-notes/$n.md"; done
 grep -q "원래 내용" "$T/AGENTS.md" || fail "user AGENTS content lost"
 grep -q "dev-process-light:begin" "$T/AGENTS.md" || fail "block not added"
