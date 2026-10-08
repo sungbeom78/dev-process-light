@@ -163,7 +163,7 @@ def check(mdir: Path) -> list[str]:
 
 def fingerprints(mdir: Path) -> dict:
     files = sorted(list(mdir.glob("*.html")) + list((mdir / "assets").glob("*")))
-    return {f.relative_to(mdir).as_posix(): hashlib.sha256(f.read_bytes()).hexdigest()[:16] for f in files if f.is_file()}
+    return {f.relative_to(mdir).as_posix(): hashlib.sha256(f.read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:16] for f in files if f.is_file()}
 
 
 OVERFLOW_JS = """() => Array.from(document.querySelectorAll('section.slide')).map((sl, i) => {
