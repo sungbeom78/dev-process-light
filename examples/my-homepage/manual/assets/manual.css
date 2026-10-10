@@ -129,7 +129,7 @@ table.grid th, table.grid td { border-bottom: .08em solid var(--line); padding: 
 table.grid th { background: var(--soft); }
 
 /* 터미널: <div class="term"><p class="c">명령</p><p class="o">출력</p><p class="ok">성공</p><p class="err">실패</p></div> */
-.term { background: #16201b; color: #d9e7dd; border-radius: .7em; font-family: var(--mono); font-size: .8em; overflow: hidden; }
+.term { background: #16201b; color: #d9e7dd; border-radius: .7em; font-family: var(--mono); font-size: .8em; overflow: hidden; flex-shrink: 0; }
 .term::before { content: "● ● ●"; display: block; padding: .35em .9em; background: #26332c; color: #6f8a7b; letter-spacing: .2em; font-size: .8em; }
 .term p { margin: 0; padding: .05em 1em; white-space: pre-wrap; line-height: 1.45; }
 .term p:first-of-type { padding-top: .6em; } .term p:last-child { padding-bottom: .7em; }

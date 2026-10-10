@@ -174,7 +174,11 @@ OVERFLOW_JS = """() => Array.from(document.querySelectorAll('section.slide')).ma
   return {i: i + 1, title: sl.dataset.title || '', over: over,
           wide: all.some(e => e.getBoundingClientRect().right > sr.right + 2),
           low: all.some(e => e.getBoundingClientRect().bottom > sr.bottom + 2),
-          up: bodies.some(b => Array.from(b.children).some(e => e.getBoundingClientRect().top < hb - 2))};
+          up: bodies.some(b => Array.from(b.children).some(e => e.getBoundingClientRect().top < hb - 2)),
+          clip: all.filter(e => { const cs = getComputedStyle(e);   // box hiding overflow with a child drawn past its edge
+            if (!(cs.overflowY === 'hidden' || cs.overflowY === 'clip') || e.clientHeight === 0) return false;
+            const eb = e.getBoundingClientRect().bottom;
+            return Array.from(e.children).some(c => c.getBoundingClientRect().bottom > eb + 2); }).length};
 })"""
 
 
@@ -194,7 +198,7 @@ def review(mdir: Path) -> dict:
             pages += len(res)
             for r in res:
                 why = (["아래로 넘침 %dpx" % r["over"]] if r["over"] > 4 else ["페이지 아래로 삐져나감"] if r["low"] else []) + \
-                      (["옆으로 넘침"] if r["wide"] else []) + (["본문이 제목을 덮음"] if r["up"] else [])
+                      (["상자 안 글이 잘림"] if r.get("clip") else []) + (["옆으로 넘침"] if r["wide"] else []) + (["본문이 제목을 덮음"] if r["up"] else [])
                 if why:
                     overflow.append(f"{f.name} #{r['i']} '{r['title']}': " + ", ".join(why) + " -- 줄이거나 페이지를 나눈다")
             pg.set_viewport_size({"width": 1930, "height": 1000})
