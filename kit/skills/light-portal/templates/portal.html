@@ -108,7 +108,7 @@ footer.wrap { color: var(--muted); font-size: 12px; padding-bottom: 32px; overfl
   function inline(s) {
     s = esc(s);
     s = s.replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
-    return s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
+    return s.replace(/\[([^\]]+)\]\((https?:[^)\s]+|[^):\s]+)\)/g, '<a href="$2">$1</a>');   // javascript: 같은 주소는 링크로 만들지 않는다
   }
   function md(src) {
     var lines = stripComments(src).replace(/\r/g, "").split("\n"), out = [], i = 0;
