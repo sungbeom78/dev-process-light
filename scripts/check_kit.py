@@ -19,8 +19,8 @@ except Exception:  # noqa: BLE001
 
 ROOT = Path(__file__).resolve().parents[1]
 KIT = ROOT / "kit"
-SKILLS = ["light-resume", "light-start", "light-check", "light-save", "light-undo", "light-manual"]
-NOTES = ["NOW.md", "FEATURES.md", "DECISIONS.md", "NAMES.md"]
+SKILLS = ["light-resume", "light-start", "light-check", "light-save", "light-undo", "light-manual", "light-portal"]
+NOTES = ["NOW.md", "FEATURES.md", "DECISIONS.md", "NAMES.md", "LOG.md"]
 errors: list[str] = []
 
 
@@ -69,6 +69,33 @@ LM = KIT / "skills" / "light-manual"
 for f in ("assets/manual.css", "assets/manual.js", "templates/index.html", "templates/chapter.html", "manual_tool.py"):
     if not (LM / f).is_file():
         errors.append(f"light-manual/{f} 없음")
+LP = KIT / "skills" / "light-portal"
+for f in ("portal_tool.py", "templates/portal.html"):
+    if not (LP / f).is_file():
+        errors.append(f"light-portal/{f} 없음")
+if "## 설정" not in (KIT / "dev-notes" / "NOW.md").read_text(encoding="utf-8"):
+    errors.append("kit/dev-notes/NOW.md 에 ## 설정 없음")
+# 기록 보기 페이지: 템플릿 기록으로 실제로 만들어 본다 (git 없는 폴더에서도, 기록 속 </script> 가 페이지를 깨지 않게)
+import json as _json, shutil as _shutil, tempfile as _tempfile  # noqa: E402
+sys.dont_write_bytecode = True
+sys.path.insert(0, str(LP))
+import portal_tool  # noqa: E402
+with _tempfile.TemporaryDirectory() as _d:
+    _root = Path(_d) / "p"
+    _shutil.copytree(KIT / "dev-notes", _root / "dev-notes")
+    with open(_root / "dev-notes" / "LOG.md", "a", encoding="utf-8") as _f:
+        _f.write("- 2026-10-11 10:00 · 문제 · </script><b>x</b> · 실패 · AI\n")
+    _rep = portal_tool.build(_root, Path("dev-notes/portal.html"))
+    _html = (_root / "dev-notes" / "portal.html").read_text(encoding="utf-8")
+    _m = re.search(r'<script type="application/json" id="data">(.*?)</script>', _html, re.S)
+    if not _m or "__DATA__" in _html:
+        errors.append("light-portal: 데이터가 페이지에 들어가지 않음")
+    else:
+        _data = _json.loads(_m.group(1))
+        if "</script><b>x</b>" not in _data["notes"]["LOG"]:
+            errors.append("light-portal: 기록 내용이 바뀜")
+    if "dev-notes/portal.html" not in (_root / ".gitignore").read_text(encoding="utf-8"):
+        errors.append("light-portal: .gitignore 에 넣지 않음")
 ex = ROOT / "examples" / "my-homepage" / "manual"
 for a in ("manual.css", "manual.js"):
     if (ex / "assets" / a).read_bytes() != (LM / "assets" / a).read_bytes():

@@ -1,7 +1,7 @@
 # dev-process-light
 
 **A lightweight working agreement for building your own multi-feature website with an AI coding agent -- so it doesn't break as it grows.**
-Six Agent Skills for Claude Code and Codex, four plain-Markdown notes, and a user manual that grows with the site. Nothing to install besides git.
+Seven Agent Skills for Claude Code and Codex, five plain-Markdown notes, a user manual that grows with the site and a local page to browse the records. Nothing to install besides git (Python only for the manual review and the records page).
 
 [한국어](README.md)
 
@@ -16,14 +16,15 @@ the AI says "done" but it doesn't work; there's no easy way back; the AI keeps r
 | `light-resume` | start of every session | reads the notes and git log, summarizes where things stand in 5 lines; sets up a new project |
 | `light-start` | before building | writes a task card (goal, done-criteria, features touched) and **asks for confirmation**; splits big requests |
 | `light-check` | before saying "done" | the AI **actually runs and opens** things; reports ✅ verified (and how) / 👀 please look / ❓ couldn't check; re-checks every other feature |
-| `light-save` | after checking | commits only this task's files and updates the notes -- a point you can return to |
+| `light-save` | after every step (agreement, a chunk of work, check, undo) | adds a line to the work log, commits only this task's files (unfinished work as `중간 저장:` work-in-progress) and updates the notes -- a point you can return to; pushes if you said so once |
 | `light-undo` | when something broke | shows saves in plain words and reverts the chosen one **without deleting history**, then re-checks |
 | `light-manual` | first build, new feature, changed usage | creates or updates the user manual in `manual/` -- HTML slides (a 16:9 page per step, a diagram and a narration script on every page; present, print to PDF or export to pptx) -- in the same save, then **shows it in the chat** |
+| `light-portal` | after each save, or "show me the records" | one local HTML file to browse the current state, features, decisions (by you / by the AI), work log and saves -- no server, no login |
 
 `AGENTS.md` adds twelve rules (the skills and the rule block are never edited inside a project -- put project rules outside the block); the two that matter most: *say so before touching another feature's files*, and
 *when something fails, look at the cause first (fix, wait and retry, ask the user, or try another way) and see it through -- if nothing works, let the user choose: undo, drop the feature, or note it for later*.
 Notes live in `dev-notes/`: `NOW.md` (current state), `FEATURES.md` (feature map: status, files, one-line check),
-`DECISIONS.md`, `NAMES.md` (screen words ↔ code names).
+`DECISIONS.md` (`[사용자]` you, quoted / `[AI]` with reason and alternatives), `LOG.md` (one line per step: when · step · what · result · who), `NAMES.md` (screen words ↔ code names).
 
 ## Install
 Easiest: open your project in Claude Code or Codex and say

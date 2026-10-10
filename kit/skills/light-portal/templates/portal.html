@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>__TITLE__</title>
+<style>
+:root {
+  --bg: #f7f5f0; --panel: #ffffff; --ink: #22201c; --muted: #6a645b; --line: #e6e1d6; --soft: #f0ece3;
+  --accent: #c2572f; --accent-ink: #ffffff; --accent-soft: #f8e3d9;
+  --ok: #2f7a4b; --ok-soft: #e0f0e5; --warn: #9a6400; --warn-soft: #f8ecd2; --bad: #b0352b; --bad-soft: #f8e1de;
+  --user: #6c3fa0; --user-soft: #efe6f8; --ai: #23657a; --ai-soft: #dff0f4;
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic", "Noto Sans KR", sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #171513; --panel: #211e1b; --ink: #ece7df; --muted: #a39b8f; --line: #36312b; --soft: #2a2622;
+    --accent: #f08a5d; --accent-ink: #1d120c; --accent-soft: #3a261c;
+    --ok: #7cc795; --ok-soft: #1f3327; --warn: #e2b55c; --warn-soft: #382d17; --bad: #f08b80; --bad-soft: #3a2220;
+    --user: #c9a3f0; --user-soft: #30253d; --ai: #7fc6da; --ai-soft: #1c3138; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #171513; --panel: #211e1b; --ink: #ece7df; --muted: #a39b8f; --line: #36312b; --soft: #2a2622;
+  --accent: #f08a5d; --accent-ink: #1d120c; --accent-soft: #3a261c;
+  --ok: #7cc795; --ok-soft: #1f3327; --warn: #e2b55c; --warn-soft: #382d17; --bad: #f08b80; --bad-soft: #3a2220;
+  --user: #c9a3f0; --user-soft: #30253d; --ai: #7fc6da; --ai-soft: #1c3138; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.6 var(--sans); }
+a { color: var(--accent); }
+.wrap { max-width: 980px; margin: 0 auto; padding-left: 16px; padding-right: 16px; }
+header { background: var(--panel); border-bottom: 1px solid var(--line); }
+.top { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 14px; padding: 18px 0 8px; }
+.top h1 { font-size: 21px; margin: 0; }
+.meta { color: var(--muted); font-size: 13px; }
+.theme { margin-left: auto; border: 1px solid var(--line); background: var(--soft); color: var(--ink); border-radius: 8px; padding: 4px 10px; font: inherit; font-size: 13px; cursor: pointer; }
+nav { display: flex; overflow-x: auto; scrollbar-width: none; }
+nav::-webkit-scrollbar { display: none; }
+nav a { padding: 10px 14px; text-decoration: none; color: var(--muted); border-bottom: 2px solid transparent; white-space: nowrap; font-weight: 500; }
+nav a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--accent); }
+main.wrap { padding-top: 22px; padding-bottom: 40px; }
+h2 { font-size: 17px; margin: 24px 0 10px; }
+h2:first-child { margin-top: 0; }
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px 20px; min-width: 0; overflow-wrap: anywhere; }
+.card + .card { margin-top: 12px; }
+.grid .card + .card { margin-top: 0; }
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin-bottom: 16px; }
+.stat .v { font-size: 24px; font-weight: 650; } .stat .k { color: var(--muted); font-size: 13px; }
+.pill { display: inline-block; font-size: 12px; line-height: 1; padding: 4px 8px; border-radius: 999px; background: var(--soft); color: var(--muted); white-space: nowrap; font-weight: 600; }
+.pill.user { background: var(--user-soft); color: var(--user); } .pill.ai { background: var(--ai-soft); color: var(--ai); }
+.pill.ok { background: var(--ok-soft); color: var(--ok); } .pill.warn { background: var(--warn-soft); color: var(--warn); } .pill.bad { background: var(--bad-soft); color: var(--bad); }
+.list { display: flex; flex-direction: column; gap: 8px; }
+.row { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; min-width: 0; overflow-wrap: anywhere; }
+.row .h { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
+.row .t { font-weight: 600; } .row .s { color: var(--muted); font-size: 13px; }
+.quote { border-left: 3px solid var(--user); background: var(--user-soft); padding: 4px 10px; border-radius: 0 8px 8px 0; margin-top: 6px; }
+.empty { color: var(--muted); padding: 18px; text-align: center; background: var(--panel); border: 1px dashed var(--line); border-radius: 12px; }
+.tbl { overflow-x: auto; margin: 10px 0; border: 1px solid var(--line); border-radius: 10px; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { background: var(--soft); color: var(--muted); font-size: 12px; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+code { font-family: var(--mono); font-size: 13px; background: var(--soft); padding: 1px 5px; border-radius: 5px; }
+pre { background: var(--soft); border-radius: 8px; padding: 10px 12px; overflow-x: auto; font: 13px/1.5 var(--mono); }
+.doc h1 { font-size: 20px; margin-top: 0; } .doc h2 { font-size: 17px; } .doc h3 { font-size: 15px; }
+.doc blockquote, .doc .note { color: var(--muted); border-left: 3px solid var(--line); margin: 8px 0; padding: 2px 12px; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.chip { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 13px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.when { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+footer.wrap { color: var(--muted); font-size: 12px; padding-bottom: 32px; overflow-wrap: anywhere; }
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <div class="top"><h1 id="title"></h1><span class="meta" id="meta"></span>
+    <button class="theme" id="theme" type="button" aria-label="화면 밝기 바꾸기">밝기</button></div>
+  <nav id="nav" aria-label="기록 메뉴"></nav>
+</div></header>
+<main class="wrap" id="main"></main>
+<footer class="wrap" id="foot"></footer>
+<script type="application/json" id="data">__DATA__</script>
+<script>
+(function () {
+  "use strict";
+  var D = JSON.parse(document.getElementById("data").textContent), N = D.notes;
+  var $ = function (id) { return document.getElementById(id); };
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) { return {"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]; }); }
+  function pill(t, c) { return '<span class="pill ' + (c || "") + '">' + esc(t) + "</span>"; }
+  function empty(s) { return '<div class="empty">' + esc(s) + "</div>"; }
+  function stripComments(s) { return String(s || "").replace(/<!--[\s\S]*?-->/g, ""); }
+
+  $("title").textContent = D.project;
+  $("meta").textContent = "만든 시각 " + D.generated_at.slice(0, 16).replace("T", " ");
+  $("foot").textContent = "이 페이지는 " + D.folder + " 의 dev-notes 기록과 저장 목록으로 만든 파일입니다. 내 컴퓨터에서만 열립니다. 저장할 때마다 새로 만들어집니다.";
+  var root = document.documentElement;
+  try { var th = localStorage.getItem("light-portal-theme"); if (th) root.setAttribute("data-theme", th); } catch (e) {}
+  $("theme").onclick = function () {
+    var dark = root.getAttribute("data-theme") ? root.getAttribute("data-theme") === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+    root.setAttribute("data-theme", dark ? "light" : "dark");
+    try { localStorage.setItem("light-portal-theme", root.getAttribute("data-theme")); } catch (e) {}
+  };
+
+  function inline(s) {
+    s = esc(s);
+    s = s.replace(/`([^`]+)`/g, "<code>$1</code>").replace(/\*\*([^*]+)\*\*/g, "<strong>$1</strong>");
+    return s.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2">$1</a>');
+  }
+  function md(src) {
+    var lines = stripComments(src).replace(/\r/g, "").split("\n"), out = [], i = 0;
+    while (i < lines.length) {
+      var l = lines[i];
+      if (/^```/.test(l)) { var b = []; i++; while (i < lines.length && !/^```/.test(lines[i])) b.push(lines[i++]); i++; out.push("<pre>" + esc(b.join("\n")) + "</pre>"); continue; }
+      var h = /^(#{1,4})\s+(.*)$/.exec(l);
+      if (h) { var n = h[1].length; out.push("<h" + n + ">" + inline(h[2]) + "</h" + n + ">"); i++; continue; }
+      if (/^\s*\|.*\|\s*$/.test(l) && i + 1 < lines.length && /^\s*\|[\s:|-]+\|\s*$/.test(lines[i + 1])) {
+        var cells = function (r) { return r.trim().replace(/^\||\|$/g, "").split("|").map(function (c) { return c.trim(); }); };
+        var head = cells(l), rows = []; i += 2;
+        while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) rows.push(cells(lines[i++]));
+        out.push('<div class="tbl"><table><thead><tr>' + head.map(function (c) { return "<th>" + inline(c) + "</th>"; }).join("") + "</tr></thead><tbody>" +
+          rows.map(function (r) { return "<tr>" + r.map(function (c) { return "<td>" + inline(c) + "</td>"; }).join("") + "</tr>"; }).join("") + "</tbody></table></div>");
+        continue;
+      }
+      if (/^\s*([-*]|\d+\.)\s+/.test(l)) {
+        var items = [];
+        while (i < lines.length && /^\s*([-*]|\d+\.)\s+/.test(lines[i])) items.push(lines[i++].replace(/^\s*([-*]|\d+\.)\s+/, "").replace(/^\[ \]\s*/, "☐ ").replace(/^\[x\]\s*/i, "☑ "));
+        out.push("<ul>" + items.map(function (x) { return "<li>" + inline(x) + "</li>"; }).join("") + "</ul>"); continue;
+      }
+      if (/^>\s?/.test(l)) { var q = []; while (i < lines.length && /^>\s?/.test(lines[i])) q.push(lines[i++].replace(/^>\s?/, "")); out.push('<div class="note">' + inline(q.join(" ")) + "</div>"); continue; }
+      if (!l.trim()) { i++; continue; }
+      var p = []; while (i < lines.length && lines[i].trim() && !/^(#{1,4}\s|```|\s*([-*]|\d+\.)\s|>|\s*\|)/.test(lines[i])) p.push(lines[i++]);
+      if (!p.length) p.push(lines[i++]);
+      out.push("<p>" + inline(p.join(" ")) + "</p>");
+    }
+    return out.join("\n");
+  }
+  function doc(name, hint) { return N[name] ? '<div class="card doc">' + md(N[name]) + "</div>" : empty(hint); }
+
+  // "- 날짜 시각 · 단계 · 무엇을 · 결과 · 누가"
+  function logRows(text) {
+    var rows = [];
+    stripComments(text).split("\n").forEach(function (l) {
+      var m = /^-\s+(\d{4}-\d{2}-\d{2}(?:\s+\d{1,2}:\d{2})?)\s+·\s+(.+)$/.exec(l.trim());
+      if (!m) return;
+      var parts = m[2].split(/\s+·\s+/);
+      rows.push({ when: m[1], step: parts[0] || "", what: parts[1] || "", result: parts[2] || "", who: parts[3] || "" });
+    });
+    return rows;
+  }
+  // "- 날짜 [사용자] 무엇 -- "원문"" / "- 날짜 [AI] 무엇 -- 이유 (다른 안: …)" / 예전 형식 "- 날짜: 무엇 -- 이유"
+  function decisionRows(text) {
+    var rows = [];
+    stripComments(text).split("\n").forEach(function (l) {
+      var m = /^-\s+(\d{4}-\d{2}-\d{2}):?\s+(?:\[(사용자|AI)\]\s+)?(.+)$/.exec(l.trim());
+      if (!m) return;
+      var body = m[3], i = body.indexOf(" -- ");
+      rows.push({ when: m[1], who: m[2] || "", what: i >= 0 ? body.slice(0, i) : body, why: i >= 0 ? body.slice(i + 4) : "" });
+    });
+    return rows;
+  }
+  function resultPill(r) { return r ? pill(r, /완료|통과|확인|저장|해결|ok/i.test(r) ? "ok" : /실패|안 됨|문제|오류/.test(r) ? "bad" : /기다|대기|중/.test(r) ? "warn" : "") : ""; }
+  function whoPill(w) { return w ? pill(w, /사용자|나/.test(w) ? "user" : "ai") : ""; }
+
+  var VIEWS = {
+    now: ["지금", function () {
+      var feats = (N.FEATURES || "").split("\n").filter(function (l) { return /^\|/.test(l) && !/^\|\s*-/.test(l) && !/기능\s*\|\s*상태/.test(l) && !/\(예\)/.test(l); });
+      var count = function (re) { return feats.filter(function (l) { return re.test(l); }).length; };
+      var log = logRows(N.LOG || ""), kinds = {};
+      D.saves.forEach(function (s) { kinds[s.kind] = (kinds[s.kind] || 0) + 1; });
+      return '<div class="grid">' +
+        '<div class="card stat"><div class="v">' + feats.length + '</div><div class="k">기능</div></div>' +
+        '<div class="card stat"><div class="v">' + count(/✅/) + '</div><div class="k">✅ 동작</div></div>' +
+        '<div class="card stat"><div class="v">' + count(/⚠️/) + '</div><div class="k">⚠️ 문제</div></div>' +
+        '<div class="card stat"><div class="v">' + D.saves.length + '</div><div class="k">저장</div></div>' +
+        '<div class="card stat"><div class="v">' + log.length + '</div><div class="k">작업 기록</div></div></div>' +
+        (D.dirty.length ? '<div class="card" style="margin-bottom:12px">' + pill("저장 안 된 변경 " + D.dirty.length + "개", "warn") + ' <span class="s">' + D.dirty.slice(0, 8).map(esc).join(", ") + "</span></div>" : "") +
+        doc("NOW", "NOW.md 가 없습니다");
+    }],
+    features: ["기능", function () { return doc("FEATURES", "FEATURES.md 가 없습니다"); }],
+    decisions: ["결정", function () {
+      var rows = decisionRows(N.DECISIONS || "").filter(function (r) { return !/YYYY/.test(r.when); });
+      if (!rows.length) return doc("DECISIONS", "결정 기록이 없습니다");
+      var f = VIEWS.decisions.f || "all";
+      var h = '<div class="filters">' + [["all", "모두"], ["사용자", "사용자가 정함"], ["AI", "AI가 정함"]].map(function (x) {
+        return '<button class="chip" data-dec="' + x[0] + '" aria-pressed="' + (f === x[0]) + '">' + x[1] + "</button>"; }).join("") + "</div>";
+      return h + '<div class="list">' + rows.filter(function (r) { return f === "all" || r.who === f; }).map(function (r) {
+        var quote = /^".*"$/.test(r.why.trim());
+        return '<div class="row"><div class="h">' + (r.who ? whoPill(r.who) : pill("기록", "")) + '<span class="t">' + inline(r.what) + '</span><span class="when">' + esc(r.when) + "</span></div>" +
+          (r.why ? (quote ? '<div class="quote">' + esc(r.why.trim()) + "</div>" : '<div class="s">' + inline(r.why) + "</div>") : "") + "</div>";
+      }).join("") + "</div>";
+    }],
+    log: ["작업 기록", function () {
+      var rows = logRows(N.LOG || "").filter(function (r) { return !/YYYY/.test(r.when); });
+      D.archive.forEach(function (a) { rows = rows.concat(logRows(a.text)); });
+      if (!rows.length) return empty("작업 기록이 아직 없습니다 -- 단계가 끝날 때마다 dev-notes/LOG.md 에 한 줄씩 쌓입니다");
+      var steps = {}; rows.forEach(function (r) { steps[r.step] = 1; });
+      var f = VIEWS.log.f || "all";
+      var h = '<div class="filters">' + ["all"].concat(Object.keys(steps)).map(function (s) {
+        return '<button class="chip" data-step="' + esc(s) + '" aria-pressed="' + (f === s) + '">' + esc(s === "all" ? "모두" : s) + "</button>"; }).join("") + "</div>";
+      return h + '<div class="list">' + rows.filter(function (r) { return f === "all" || r.step === f; }).map(function (r) {
+        return '<div class="row"><div class="h">' + pill(r.step, "") + '<span class="t">' + inline(r.what) + "</span>" + resultPill(r.result) + whoPill(r.who) +
+          '<span class="when">' + esc(r.when) + "</span></div></div>";
+      }).join("") + "</div>";
+    }],
+    saves: ["저장", function () {
+      if (!D.saves.length) return empty("아직 저장이 없습니다 (git)");
+      return '<p class="s" style="color:var(--muted)">되돌아올 수 있는 지점입니다. 되돌리려면 AI 에게 "○○ 때로 되돌려 줘"라고 말하세요 (light-undo).' +
+        (D.remote ? "" : " 인터넷 저장소는 연결되어 있지 않습니다.") + '</p><div class="list">' + D.saves.map(function (s) {
+        var c = { "기능": "ok", "수정": "ok", "되돌리기": "warn", "중간 저장": "" }[s.kind];
+        return '<div class="row"><div class="h">' + (s.kind ? pill(s.kind, c || "") : "") + '<span class="t">' + esc(s.kind ? s.msg.slice(s.kind.length + 1).trim() : s.msg) + "</span>" +
+          '<span class="when">' + esc(s.at.slice(0, 16).replace("T", " ")) + " · " + esc(s.hash) + "</span></div></div>";
+      }).join("") + "</div>";
+    }],
+    names: ["이름표", function () { return doc("NAMES", "NAMES.md 가 없습니다"); }]
+  };
+  if (N.LEARNED) VIEWS.learned = ["배운 것", function () { return doc("LEARNED", ""); }];
+
+  $("nav").innerHTML = Object.keys(VIEWS).map(function (k) { return '<a href="#' + k + '" data-v="' + k + '">' + VIEWS[k][0] + "</a>"; }).join("") +
+    (D.manual ? '<a href="' + esc(D.manual) + '" target="_blank" rel="noopener">사용설명서 ↗</a>' : "");
+
+  function render() {
+    var v = location.hash.slice(1); if (!VIEWS[v]) v = "now";
+    $("main").innerHTML = VIEWS[v][1]();
+    Array.prototype.forEach.call(document.querySelectorAll("nav a[data-v]"), function (a) {
+      if (a.getAttribute("data-v") === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current");
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-dec]"), function (b) { b.onclick = function () { VIEWS.decisions.f = b.getAttribute("data-dec"); render(); }; });
+    Array.prototype.forEach.call(document.querySelectorAll("[data-step]"), function (b) { b.onclick = function () { VIEWS.log.f = b.getAttribute("data-step"); render(); }; });
+  }
+  window.addEventListener("hashchange", function () { render(); window.scrollTo(0, 0); });
+  render();
+})();
+</script>
+</body>
+</html>
