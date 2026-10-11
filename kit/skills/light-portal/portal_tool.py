@@ -26,12 +26,13 @@ HERE = Path(__file__).resolve().parent
 NOTES = ["NOW", "FEATURES", "DECISIONS", "LOG", "NAMES", "LEARNED"]
 KINDS = ["기능", "수정", "모양", "정리", "중간 저장", "되돌리기", "준비"]
 DEFAULT_OUT = "dev-notes/portal.html"
+MAX_FEATURE_FILES = 400
 
 
 def _git(root: Path, *args: str) -> str:
     env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
     try:
-        r = subprocess.run(["git", "-C", str(root), *args], capture_output=True, text=True, encoding="utf-8",
+        r = subprocess.run(["git", "-c", "core.quotepath=false", "-C", str(root), *args], capture_output=True, text=True, encoding="utf-8",
                            errors="replace", env=env)
     except FileNotFoundError:
         return ""
@@ -49,7 +50,16 @@ def collect(root: Path, out: Path) -> dict:
     for n in NOTES:
         p = root / "dev-notes" / f"{n}.md"
         notes[n] = p.read_text(encoding="utf-8") if p.is_file() else None
-    archive = sorted((root / "dev-notes" / "log").glob("*.md"), reverse=True) if (root / "dev-notes" / "log").is_dir() else []
+    logdir = root / "dev-notes" / "log"
+    archive = sorted([*logdir.glob("_흐름/*.md"), *logdir.glob("*.md")], key=lambda p: p.stem, reverse=True) if logdir.is_dir() else []
+    feature_logs = []
+    if logdir.is_dir():
+        for p in sorted(logdir.glob("*/*.md"), key=lambda p: (p.stem, p.parent.name), reverse=True)[:MAX_FEATURE_FILES]:
+            if p.parent.name.startswith("_"):
+                continue
+            text = p.read_text(encoding="utf-8", errors="replace")
+            feature_logs.append({"feature": p.parent.name, "date": p.stem,
+                                 "text": text if len(text) <= 60000 else text[:60000] + "\n\n… (잘림 -- 파일을 열어 본다)"})
     saves = []
     for line in _git(root, "log", "-80", "--format=%h%x00%cI%x00%s").splitlines():
         h, when, msg = (line.split("\x00") + ["", ""])[:3]
@@ -63,6 +73,7 @@ def collect(root: Path, out: Path) -> dict:
         manual_href = manual.resolve().as_uri()
     return {"project": _project_name(notes["NOW"], root), "folder": str(root), "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
             "notes": notes, "archive": [{"name": p.stem, "text": p.read_text(encoding="utf-8")} for p in archive[:24]],
+            "feature_logs": feature_logs,
             "saves": saves, "dirty": dirty, "remote": bool(_git(root, "remote")), "manual": manual_href}
 
 

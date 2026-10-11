@@ -24,7 +24,7 @@ the AI says "done" but it doesn't work; there's no easy way back; the AI keeps r
 `AGENTS.md` adds twelve rules (the skills and the rule block are never edited inside a project -- put project rules outside the block); the two that matter most: *say so before touching another feature's files*, and
 *when something fails, look at the cause first (fix, wait and retry, ask the user, or try another way) and see it through -- if nothing works, let the user choose: undo, drop the feature, or note it for later*.
 Notes live in `dev-notes/`: `NOW.md` (current state), `FEATURES.md` (feature map: status, files, one-line check),
-`DECISIONS.md` (`[사용자]` you, quoted / `[AI]` with reason and alternatives), `LOG.md` (one line per step: when · step · what · result · who), `NAMES.md` (screen words ↔ code names).
+`DECISIONS.md` (`[사용자]` you, quoted / `[AI]` with reason and alternatives), `LOG.md` (the flow: one line per step -- planning, building, checking, operating, reviewing -- when · step · feature · what · result · who) and `log/<feature>/<date>.md` (that day's item list plus details: files/classes/functions/variables changed, check results, errors and fixes, review notes) -- the agent reads flow → list → details, only what it needs, `NAMES.md` (screen words ↔ code names).
 
 ## Install
 Easiest: open your project in Claude Code or Codex and say

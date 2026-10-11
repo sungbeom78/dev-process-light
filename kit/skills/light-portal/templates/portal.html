@@ -57,6 +57,11 @@ h2:first-child { margin-top: 0; }
 .row { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 14px; min-width: 0; overflow-wrap: anywhere; }
 .row .h { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: center; }
 .row .t { font-weight: 600; } .row .s { color: var(--muted); font-size: 13px; }
+details.row > summary { list-style: none; cursor: pointer; }
+details.row > summary::-webkit-details-marker { display: none; }
+details.row > summary .t::after { content: " ▾"; color: var(--muted); font-weight: 400; font-size: 12px; }
+details.row[open] > summary .t::after { content: " ▴"; }
+details.row:hover { border-color: var(--accent); }
 .quote { border-left: 3px solid var(--user); background: var(--user-soft); padding: 4px 10px; border-radius: 0 8px 8px 0; margin-top: 6px; }
 .empty { color: var(--muted); padding: 18px; text-align: center; background: var(--panel); border: 1px dashed var(--line); border-radius: 12px; }
 .tbl { overflow-x: auto; margin: 10px 0; border: 1px solid var(--line); border-radius: 10px; }
@@ -71,6 +76,7 @@ pre { background: var(--soft); border-radius: 8px; padding: 10px 12px; overflow-
 .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .chip { border: 1px solid var(--line); background: var(--panel); color: var(--ink); border-radius: 999px; padding: 5px 12px; font: inherit; font-size: 13px; cursor: pointer; }
 .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+select { font: inherit; font-size: 14px; padding: 5px 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); }
 .when { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
 footer.wrap { color: var(--muted); font-size: 12px; padding-bottom: 32px; overflow-wrap: anywhere; }
 </style>
@@ -146,8 +152,12 @@ footer.wrap { color: var(--muted); font-size: 12px; padding-bottom: 32px; overfl
     stripComments(text).split("\n").forEach(function (l) {
       var m = /^-\s+(\d{4}-\d{2}-\d{2}(?:\s+\d{1,2}:\d{2})?)\s+·\s+(.+)$/.exec(l.trim());
       if (!m) return;
-      var parts = m[2].split(/\s+·\s+/);
-      rows.push({ when: m[1], step: parts[0] || "", what: parts[1] || "", result: parts[2] || "", who: parts[3] || "" });
+      var p = m[2].split(/\s+·\s+/);
+      // 새 형식: 단계 · 기능 · 무엇을 · 결과 · 누가 / 예전(0.6.0): 단계 · 무엇을 · 결과 · 누가
+      var r = p.length >= 5 ? { step: p[0], feature: p[1], what: p[2], result: p[3], who: p[4] }
+                            : { step: p[0] || "", feature: "", what: p[1] || "", result: p[2] || "", who: p[3] || "" };
+      r.when = m[1];
+      rows.push(r);
     });
     return rows;
   }
@@ -162,7 +172,11 @@ footer.wrap { color: var(--muted); font-size: 12px; padding-bottom: 32px; overfl
     });
     return rows;
   }
-  function resultPill(r) { return r ? pill(r, /완료|통과|확인|저장|해결|ok/i.test(r) ? "ok" : /실패|안 됨|문제|오류/.test(r) ? "bad" : /기다|대기|중/.test(r) ? "warn" : "") : ""; }
+  var FLOG = {}; (D.feature_logs || []).forEach(function (x) { FLOG[x.feature + "/" + x.date] = x; });
+  D.feature_logs = D.feature_logs || [];
+  function folder(name) { return String(name).trim().replace(/\s+/g, "-"); }
+  var STEPC = { "기획": "ai", "만들기": "", "확인": "warn", "운영": "", "평가": "user" };
+  function resultPill(r) { return r ? pill(r, /실패|안 됨|문제|오류/.test(r) ? "bad" : /못|기다|대기|중/.test(r) ? "warn" : /완료|통과|확인|저장|해결|ok/i.test(r) ? "ok" : "") : ""; }
   function whoPill(w) { return w ? pill(w, /사용자|나/.test(w) ? "user" : "ai") : ""; }
 
   var VIEWS = {
@@ -197,14 +211,31 @@ footer.wrap { color: var(--muted); font-size: 12px; padding-bottom: 32px; overfl
       var rows = logRows(N.LOG || "").filter(function (r) { return !/YYYY/.test(r.when); });
       D.archive.forEach(function (a) { rows = rows.concat(logRows(a.text)); });
       if (!rows.length) return empty("작업 기록이 아직 없습니다 -- 단계가 끝날 때마다 dev-notes/LOG.md 에 한 줄씩 쌓입니다");
-      var steps = {}; rows.forEach(function (r) { steps[r.step] = 1; });
-      var f = VIEWS.log.f || "all";
-      var h = '<div class="filters">' + ["all"].concat(Object.keys(steps)).map(function (s) {
-        return '<button class="chip" data-step="' + esc(s) + '" aria-pressed="' + (f === s) + '">' + esc(s === "all" ? "모두" : s) + "</button>"; }).join("") + "</div>";
-      return h + '<div class="list">' + rows.filter(function (r) { return f === "all" || r.step === f; }).map(function (r) {
-        return '<div class="row"><div class="h">' + pill(r.step, "") + '<span class="t">' + inline(r.what) + "</span>" + resultPill(r.result) + whoPill(r.who) +
-          '<span class="when">' + esc(r.when) + "</span></div></div>";
+      var steps = {}, feats = {}; rows.forEach(function (r) { steps[r.step] = 1; if (r.feature) feats[r.feature] = 1; });
+      var f = VIEWS.log.f || "all", ff = VIEWS.log.ff || "";
+      var h = '<p class="s" style="color:var(--muted)">흐름(한 줄씩)입니다. 줄을 누르면 그 기능·날짜의 목록과 자세히가 열립니다.</p><div class="filters">' +
+        ["all"].concat(Object.keys(steps)).map(function (s) {
+        return '<button class="chip" data-step="' + esc(s) + '" aria-pressed="' + (f === s) + '">' + esc(s === "all" ? "모두" : s) + "</button>"; }).join("") +
+        (Object.keys(feats).length ? '<select id="lfeat" aria-label="기능"><option value="">모든 기능</option>' + Object.keys(feats).sort().map(function (k) {
+          return '<option value="' + esc(k) + '"' + (ff === k ? " selected" : "") + ">" + esc(k) + "</option>"; }).join("") + "</select>" : "") + "</div>";
+      return h + '<div class="list">' + rows.filter(function (r) { return (f === "all" || r.step === f) && (!ff || r.feature === ff); }).map(function (r) {
+        var file = r.feature ? FLOG[folder(r.feature) + "/" + r.when.slice(0, 10)] : null;
+        var head = '<div class="h">' + pill(r.step, STEPC[r.step] || "") + (r.feature ? '<span class="s">' + esc(r.feature) + "</span>" : "") +
+          '<span class="t">' + inline(r.what) + "</span>" + resultPill(r.result) + whoPill(r.who) + '<span class="when">' + esc(r.when) + "</span></div>";
+        return file ? '<details class="row"><summary>' + head + '</summary><div class="doc" style="margin-top:8px">' + md(file.text) + "</div></details>"
+                    : '<div class="row">' + head + "</div>";
       }).join("") + "</div>";
+    }],
+    features_log: ["기능별 기록", function () {
+      if (!D.feature_logs.length) return empty("기능별 기록 파일이 아직 없습니다 -- dev-notes/log/<기능>/<날짜>.md");
+      var byF = {}; D.feature_logs.forEach(function (x) { (byF[x.feature] = byF[x.feature] || []).push(x); });
+      return Object.keys(byF).sort().map(function (k) {
+        return "<h2>" + esc(k.replace(/-/g, " ")) + '</h2><div class="list">' + byF[k].map(function (x) {
+          var items = (x.text.split("## 자세히")[0].match(/^- #\d+.*$/gm) || []).length;
+          return '<details class="row"><summary><div class="h"><span class="t">' + esc(x.date) + '</span><span class="s">목록 ' + items + "줄</span></div></summary>" +
+            '<div class="doc" style="margin-top:8px">' + md(x.text) + "</div></details>";
+        }).join("") + "</div>";
+      }).join("");
     }],
     saves: ["저장", function () {
       if (!D.saves.length) return empty("아직 저장이 없습니다 (git)");
@@ -230,6 +261,7 @@ footer.wrap { color: var(--muted); font-size: 12px; padding-bottom: 32px; overfl
     });
     Array.prototype.forEach.call(document.querySelectorAll("[data-dec]"), function (b) { b.onclick = function () { VIEWS.decisions.f = b.getAttribute("data-dec"); render(); }; });
     Array.prototype.forEach.call(document.querySelectorAll("[data-step]"), function (b) { b.onclick = function () { VIEWS.log.f = b.getAttribute("data-step"); render(); }; });
+    var lf = document.getElementById("lfeat"); if (lf) lf.onchange = function () { VIEWS.log.ff = lf.value; render(); };
   }
   window.addEventListener("hashchange", function () { render(); window.scrollTo(0, 0); });
   render();

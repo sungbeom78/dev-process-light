@@ -38,7 +38,8 @@ python .claude/skills/light-portal/portal_tool.py build --out dev-notes/portal.h
 | 지금 | 기능 수·문제·저장 수, 저장 안 된 변경, `NOW.md` |
 | 기능 | `FEATURES.md` (기능 지도) |
 | 결정 | `DECISIONS.md` -- 사용자가 정한 것 / AI 가 정한 것을 나눠서 |
-| 작업 기록 | `LOG.md` (+ `dev-notes/log/` 의 지난달) -- 단계별로 골라 보기 |
+| 작업 기록 | 흐름 `LOG.md` (+ `dev-notes/log/_흐름/` 의 지난달) -- 단계·기능으로 골라 보기, 줄을 누르면 그 기능·날짜의 목록·자세히 |
+| 기능별 기록 | `dev-notes/log/<기능>/<날짜>.md` -- 기능마다 날짜별로 |
 | 저장 | git 저장 목록 (되돌아올 수 있는 지점) |
 | 이름표 | `NAMES.md` |
 | 사용설명서 | `manual/index.html` 이 있으면 바로 가기 |

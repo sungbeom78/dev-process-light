@@ -84,7 +84,10 @@ with _tempfile.TemporaryDirectory() as _d:
     _root = Path(_d) / "p"
     _shutil.copytree(KIT / "dev-notes", _root / "dev-notes")
     with open(_root / "dev-notes" / "LOG.md", "a", encoding="utf-8") as _f:
-        _f.write("- 2026-10-11 10:00 · 문제 · </script><b>x</b> · 실패 · AI\n")
+        _f.write("- 2026-10-11 10:00 · 확인 · 할 일 · </script><b>x</b> · 실패 · AI\n")
+    (_root / "dev-notes" / "log" / "할-일").mkdir(parents=True)
+    (_root / "dev-notes" / "log" / "할-일" / "2026-10-11.md").write_text(
+        "# 할 일 -- 2026-10-11\n\n## 목록\n- #1 10:00 [확인] 새로고침 -- 실패\n\n## 자세히\n### #1 10:00 [확인]\n- 오류: x\n", encoding="utf-8")
     _rep = portal_tool.build(_root, Path("dev-notes/portal.html"))
     _html = (_root / "dev-notes" / "portal.html").read_text(encoding="utf-8")
     _m = re.search(r'<script type="application/json" id="data">(.*?)</script>', _html, re.S)
@@ -94,6 +97,8 @@ with _tempfile.TemporaryDirectory() as _d:
         _data = _json.loads(_m.group(1))
         if "</script><b>x</b>" not in _data["notes"]["LOG"]:
             errors.append("light-portal: 기록 내용이 바뀜")
+        if [(x["feature"], x["date"]) for x in _data.get("feature_logs", [])] != [("할-일", "2026-10-11")]:
+            errors.append("light-portal: 기능별 기록 파일을 담지 못함")
     if "dev-notes/portal.html" not in (_root / ".gitignore").read_text(encoding="utf-8"):
         errors.append("light-portal: .gitignore 에 넣지 않음")
 ex = ROOT / "examples" / "my-homepage" / "manual"
