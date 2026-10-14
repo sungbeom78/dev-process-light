@@ -98,6 +98,7 @@ description: 새 기능을 만들거나 기존 기능을 바꾸기 전에 쓴다
    data-light 의 성공 기준(`goals`)으로, 사용자가 "이번엔 안 한다"고 한 것(카드·`DECISIONS.md`)은 만들지 않을 것(`not_doing`)으로.
    없는 것만 data-light 가 묻고, 답은 `DECISIONS.md`(`[사용자]`)에도 적는다.
    **샘플 행(`sample`)과 성공 기준의 기대 결과(`expect`)는 만든 값으로** 쓴다 -- 가져온 엑셀·CSV 의 실제 이름·연락처를 옮겨 적지 않는다 (정본은 저장되고 올라간다).
+   표마다 샘플 행을 하나 이상 둔다 (샘플이 없고 필수 칸도 없는 표는 `verify` 가 `near ")": syntax error` 로 실패한다 -- data-light 0.4.0).
    두 칸을 묶어야 중복이 되는 것(한 회원은 한 달에 회비 한 번)은 표의 `"unique": [["member_id", "dues_month"]]` 로 정본에 적는다 --
    DB(SQLite·Supabase)가 막아 준다 (브라우저 저장이면 위처럼 화면 코드도 막는다).
    **Supabase 면 누가 볼 수 있는지도 정본에** -- "누가 쓰나" 답으로 AI 가 정하고 `DECISIONS.md` 에 `[AI]`(이유·다른 안)로 남긴다.
@@ -124,6 +125,11 @@ description: 새 기능을 만들거나 기존 기능을 바꾸기 전에 쓴다
      `.gitignore` 의 **데이터 줄**을 만든다. 인터넷 저장소에 올리지 않는 프로젝트(`## 설정` 의 push 가 `아니오`, 또는 `git remote` 없음)면
      `--no-ci` -- GitHub 검사 파일은 올릴 때만 쓸모가 있다 (도구가 이 선택을 `.data-light/settings.json` 에 기억한다).
      결과에 "이미 있어 건드리지 않았습니다" 가 나오면 다른 검사 훅이 이미 있는 것 -- 사용자에게 알리고, 좋다고 하면 `--append`.
+     **설치한 뒤 `sh -n <훅 위치>`**(보통 `.git/hooks/pre-commit` -- `hook status` 가 위치를 보여 준다)로 이 컴퓨터의 sh 가 훅을 읽는지 본다.
+     `syntax error` 가 나오면 그 훅은 정본과 상관없이 **모든 저장을 막는다** (짝 data-light 0.4.0 의 훅이 macOS 의 sh 에서 이렇다 -- 원본에서 고칠 때까지).
+     그때는 사용자에게 알리고, 좋다고 하면 훅 파일에서 `# data-light pre-commit` 줄부터 `# data-light end` 줄까지만 빼고(다른 내용은 그대로)
+     `## 설정` 에 `데이터 검사 장치: 안 함 (이 컴퓨터의 sh 가 훅을 못 읽음 -- 짝 버전이 오르면 다시)` 으로 적는다. 그동안 정본을 고친 저장 전에는
+     `light-check` 가 `verify` 를 직접 돌린다.
    - 아니오 → `안 함`. 이때는 AI 가 `.gitignore` 에 데이터 줄을 직접 더한다 (없는 줄만):
      `data/app.db` `data/backup/` `data/*.csv` `data/*.xlsx` `data/out/spec.xlsx` `data/import_plan*.json` `import_plan*.json` `.env`
      (실제 데이터·원본 파일·가져오기 계획(실제 값 일부가 들어 있다)·비밀 설정은 올리지 않는다. `spec.xlsx` 는 만들 때마다 달라지니 다시 만든다).

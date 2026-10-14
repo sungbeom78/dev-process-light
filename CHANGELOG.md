@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 0.10.1 -- 2026-10-15
+- **macOS 에서 짝 data-light 0.4.0 의 검사 장치가 모든 저장을 막는 문제**에 대한 임시 조치. 0.4.0 의 pre-commit 훅은 `$( … )` 안에
+  `case` 를 쓰는데, macOS 의 `/bin/sh`(bash 3.2)는 이것을 읽지 못해(`syntax error near unexpected token ';;'`) 정본과 상관없이 모든 커밋이 멈춘다.
+  0.10.0 의 CI 가 macOS 두 곳에서 실패해 알았고, 소스에서 빌드한 bash 3.2.57 로 재현했다. 원본에 고칠 방법(패턴 앞에 `(` -- bash 3.2·dash·bash 5 에서 확인)과 함께 요청했다
+  - `light-start` 5: `hook install` 뒤 `sh -n <훅>` 으로 이 컴퓨터의 sh 가 훅을 읽는지 확인. `syntax error` 면 사용자에게 알리고 우리 블록만 빼고
+    `안 함 (이 컴퓨터의 sh 가 훅을 못 읽음 -- 짝 버전이 오르면 다시)`, 그동안 `light-check` 가 `verify` 를 직접. `light-resume`·`light-check` 도 같은 확인
+  - `light-start` 4: 표마다 샘플 행 하나 이상 (샘플도 필수 칸도 없는 표는 0.4.0 의 `verify` 가 SQL 오류로 실패 -- 원본에 요청)
+  - `test_install.sh`: 설치된 훅을 이 컴퓨터의 sh 가 못 읽고 짝 버전이 0.4.0 이면 알려진 문제로 적고 훅을 거치는 저장 시험만 건너뜀
+    (짝 버전이 바뀌면 이 예외는 저절로 없어진다). 전체를 bash 3.2 로 돌려도 설치는 통과
+
 ## 0.10.0 -- 2026-10-15
 - 짝 스킬 data-light 를 **0.4.0** (data-expert-framework-light `2ad0c15`, 태그 `v0.4.0`) 으로. 0.9 가 원본에 요청한 U1~U8 이 반영되어
   light 쪽 임시 지시를 걷어 냈다 (원본 기능은 이 저장소에서 다시 실행해 확인):

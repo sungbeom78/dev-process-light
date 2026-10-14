@@ -55,7 +55,9 @@ description: 작업을 시작하거나 이어갈 때 가장 먼저 쓴다. dev-n
    - `결과: 버전이 다릅니다` 또는 `훅: 없음` → `datalight.py hook install`. 이때 `.github/workflows/data-light.yml` 이 없으면 `--no-ci` 를 붙인다
      (예전 버전은 늘 만들었으니, 없다면 사용자가 지운 것이다 -- 되살리지 않는다).
      결과에 "이미 있어 건드리지 않았습니다" 가 나오면(`git config core.hooksPath` 가 있는 저장소 등 -- 예전 버전은 `.git/hooks` 에만 깔았다)
-     다른 검사 훅이 그 자리에 있는 것이다 -- 사용자에게 알리고, 좋다고 하면 `--append`. 다시 `hook status` 로 `결과: 최신` 을 확인한다.
+     다른 검사 훅이 그 자리에 있는 것이다 -- 사용자에게 알리고, 좋다고 하면 `--append`. 다시 `hook status` 로 `결과: 최신` 을 확인하고,
+     `light-start` "넘겨주는 순서" 5 처럼 `sh -n <훅 위치>` 로 이 컴퓨터의 sh 가 훅을 읽는지 본다 (`syntax error` 면 그 5 대로).
+   - `안 함 (이 컴퓨터의 sh 가 훅을 못 읽음 …)` 이면 짝 data-light 버전이 올랐을 때 다시 설치할지 묻는다 (설치하면 `sh -n` 확인부터).
 3. `data/model.light.json` 이 있으면 장치 결과와 상관없이 늘 `build`(정본의 `db` 대로) → `verify`. 새 도구는 생성물을 다르게 만들 수 있다 --
    **다시 만들기 전에는 `verify` 가 "data/out 의 … 가 정본과 다릅니다" 로 실패하고, GitHub 검사 파일이 있는 저장소는 올렸을 때 GitHub 검사도 실패한다.**
    `git diff data/out` 으로 무엇이 바뀌었는지 쉬운 말로 알린다 (예: "Supabase 용 SQL 에 모든 표의 행 접근 규칙이 들어갔어요").
