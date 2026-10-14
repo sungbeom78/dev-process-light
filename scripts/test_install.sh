@@ -67,4 +67,22 @@ if [ "$MODE" = bash ]; then
   sed 's/$/\r/' "$ROOT/kit/skills/data-light/scripts/datalight.py" > "$T/.data-light/datalight.py"
   bash "$ROOT/install.sh" "$T" | grep -q "짝 버전으로 바꿈" && fail "CRLF-only tool copy rewritten"
 fi
-echo "PASS ($MODE): install, re-install, paired data-light, user notes·data and AGENTS.md content preserved"
+# 예전 버전(0.8, 훅에 버전 줄 없음)의 데이터 검사 장치 → hook status 가 다르다고 하고 → hook install 뒤 최신 → 정본 저장이 훅을 통과
+if [ "$MODE" = bash ] && [ -n "$PY" ] && command -v git >/dev/null 2>&1; then
+  G="$(mktemp -d)/repo"; mkdir -p "$G"; git -C "$G" init -q
+  bash "$ROOT/install.sh" "$G" >/dev/null
+  DL="$G/.claude/skills/data-light/scripts/datalight.py"
+  mkdir -p "$G/.git/hooks"; printf '#!/bin/sh\n# data-light pre-commit (datalight.py hook install)\nexit 0\n' > "$G/.git/hooks/pre-commit"
+  mkdir -p "$G/.data-light"; cp "$DL" "$G/.data-light/datalight.py"
+  (cd "$G" && "$PY" -B "$DL" hook status >/dev/null) && fail "old hook reported as current"
+  (cd "$G" && "$PY" -B "$DL" hook install --no-ci >/dev/null) || fail "hook install"
+  (cd "$G" && "$PY" -B "$DL" hook status >/dev/null) || fail "hook not current after install"
+  [ -e "$G/.github/workflows/data-light.yml" ] && fail "--no-ci created a CI file"
+  mkdir -p "$G/data"; cp "$ROOT/kit/skills/data-light/examples/shop/data/model.light.json" "$G/data/"
+  (cd "$G" && "$PY" -B "$DL" build data/model.light.json --out data/out >/dev/null) || fail "build"
+  git -C "$G" add data/model.light.json data/out/schema.sql data/out/erd.md data/out/spec.md
+  git -C "$G" -c user.name=t -c user.email=t@t commit -q -m "데이터: 시험" >/dev/null 2>&1 || fail "commit through the data hook"
+  printf '{"format": "data-light/1", "tables": []}\n' > "$G/data/model.light.json"; git -C "$G" add data/model.light.json
+  git -C "$G" -c user.name=t -c user.email=t@t commit -q -m "데이터: 망가뜨림" >/dev/null 2>&1 && fail "broken model committed past the hook"
+fi
+echo "PASS ($MODE): install, re-install, paired data-light, data hook upgrade, user notes·data and AGENTS.md content preserved"

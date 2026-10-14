@@ -247,6 +247,11 @@ footer.wrap { color: var(--muted); font-size: 12px; padding-bottom: 32px; overfl
         if (c.about) etc.push(c.about);
         return '<li><span class="n">' + esc(c.label || c.name) + "</span><code>" + esc(c.name) + '</code><span class="d">' + esc(etc.filter(Boolean).join(" · ")) + "</span></li>";
       }).join("");
+      (Array.isArray(t.unique) ? t.unique : []).forEach(function (u) {
+        if (!Array.isArray(u)) return;
+        var labs = u.map(function (n) { var c = t.columns.filter(function (x) { return x.name === n; })[0]; return c && c.label ? c.label : String(n); });
+        rows += '<li><span class="n">묶음 중복 금지</span><span class="d">' + esc(labs.join(" + ")) + " 이 같은 행은 한 번만</span></li>";
+      });
       if (t.timestamps) rows += '<li><span class="d">+ 만든 때·고친 때 (자동으로 기록)</span></li>';
       return '<details class="row"><summary><div class="h">' + (pi ? pill("개인정보", "warn") : "") + '<span class="t">' + esc(t.label || t.name) + "</span>" +
         '<span class="s"><code>' + esc(t.name) + "</code> · 칸 " + t.columns.length + "</span>" +

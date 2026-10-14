@@ -1,5 +1,36 @@
 # CHANGELOG
 
+## 0.9.0 -- 2026-10-15
+- 짝 스킬 data-light 를 **0.3.0** (data-expert-framework-light `e84d857`, 태그 `v0.3.0`) 으로. 0.8 이 원본에 요청한 A1~C3 가 반영되어
+  light 쪽 임시 지시를 걷어 냈다:
+  - 가져오기: `import plan` 이 계획을 `data/import_plan.json` 에, 경로는 프로젝트 기준으로, 개인정보 칸 값은 가려 적는다 → AI 가 `"file"` 을 고치던 지시 삭제
+  - `.gitignore` 데이터 줄은 `hook install` 이 넣는다 (장치를 안 깔면 AI 가 같은 줄을 넣는다)
+  - Supabase: `build --db postgresql` 이 모든 표에 RLS 를 켜고 규칙 틀을 단다 → light 는 "누가 쓰나" 답으로 틀을 고르고, 생성물은 고치지 않고
+    Supabase 에서 따로 실행, 고른 것을 결정 기록에 (`pi_` 의 정해진 사람끼리 틀·`owner_id` 칸은 아직 없어 안내)
+  - 두 칸을 묶은 중복 금지 `"unique": [[…]]` 를 정본에 -- 화면 코드에 맡기던 것을 정본으로
+  - 이미 있는 SQLite 는 `import schema` 가 정본 초안을 만든다 (`확인:` 줄은 사용자와)
+  - 검사 장치: `hook status`(설치된 훅·도구 사본 버전) -- `light-resume`·`light-check` 가 이것으로 판단하고 버전이 다르거나 없을 때만 `hook install`.
+    `light-start` 는 인터넷 저장소에 올리지 않는 프로젝트에 `--no-ci`(도구가 기억), 다른 훅이 있으면 사용자에게 묻고 `--append`.
+    `core.hooksPath` 는 도구가 따른다. 올리기로 정하면 `light-save` 가 GitHub 검사를 켤지(`--ci`) 한 번 묻는다
+  - 훅이 "python 을 찾지 못해 검사를 건너뜁니다" 를 내면 검사되지 않은 저장으로 보고 (`light-save`·`light-check`)
+- 독립 검토(0.3.0 연동) 반영:
+  - **정해진 사람끼리의 Supabase 규칙은 새 가입을 꺼야만 안전** -- 끈 것을 확인한 뒤에만 그 틀(과 `pi_` 표에 같은 틀), 아니면 `pi_` 는 본인·관리자만.
+    실행한 규칙 SQL 은 `data/supabase-policies.sql` 에 저장, `schema.sql` 의 "주석을 지우고" 는 SQL 편집기에 붙여 넣은 다음의 일, 이미 만든
+    Supabase 에는 바뀐 부분만 실행. 보안 점검은 RLS·키 경고 0
+  - `import apply` 는 SQLite 에만 넣는다 -- Supabase·브라우저 저장 프로젝트에서는 쓰지 않는다 (실제 값만 남는 파일을 만들지 않게), 확인 뒤 계획의 `approved`
+  - 이미 있는 DB: 정본 밖에 둘 수 있는 것은 **비어 있는 표만** (데이터가 든 표를 빼면 `verify` 가 계속 막는다), 초안에 개인정보 표시는 AI 가 하고 옮기기는 확인 후
+  - 브라우저 저장이면 같은 값·묶음 중복 금지도 화면 코드의 완료 기준으로, 백업(내보내기)은 만든다고 알리고 기준에
+  - "다시 설치한 뒤": `훅: 없음`·"이미 있어 건드리지 않았습니다"(core.hooksPath) 처리, GitHub 검사 파일이 없으면 `--no-ci`(지운 것을 되살리지 않음),
+    생성물은 장치 결과와 상관없이 늘 다시 만들고 verify, 예전 한계로 남긴 결정은 정본으로 옮길지 제안
+  - `git add` 는 있는 경로만, 데이터 저장에 `.gitignore`·`data/supabase-policies.sql`, 코드 이름 검사의 예외(`owner_id` 처럼 결정 기록에 적힌 칸),
+    `datalight.py` 는 스킬 경로로 부른다(`.data-light/` 사본은 커밋 검사용)
+  - 기록 보기 페이지가 표의 묶음 중복 금지를 보여 준다
+- `light-resume` "다시 설치한 뒤": 새 도구로 `build` 하기 전에는 `verify`·(검사 파일이 있으면) GitHub 검사가 실패한다는 것과, 바뀐 생성물(예: RLS)을
+  이미 만든 DB 에도 적용할지 따로 묻는 것을 적음 (0.8 → 0.9 로 올린 Supabase 프로젝트는 `schema.sql` 에 RLS 줄이 더해진다)
+- `check_kit.py`: `datalight.py --version` 이 잠금 파일의 버전과 같은지. `test_install.sh`: 예전 검사 장치(버전 줄 없는 훅) → `hook status` 다름 →
+  `hook install --no-ci` → 최신 → 정본 저장이 훅을 통과하고 망가진 정본은 막히는지
+- 예시 `examples/club-dues` 를 0.3.0 으로 다시 수행 (묶음 중복 금지, `hook install --no-ci`·`hook status`)
+
 ## 0.8.1 -- 2026-10-14
 - 짝 스킬 data-light 를 **0.2.1** (data-expert-framework-light `828c5ba`, 태그 `v0.2.1`) 로. 0.2.1 은 0.8.0 이 담은 `cbbd258`
   (Windows·Python 3.9 수정)에 릴리스 이름을 붙인 것이라 `kit/skills/data-light` 의 파일은 그대로이고 잠금 파일의 커밋·버전만 바뀐다.

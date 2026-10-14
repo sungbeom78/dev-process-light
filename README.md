@@ -73,7 +73,7 @@ AI는 설명서의 **따라 하기를 실제로 해 보고** 저장한 뒤, 바�
 | 전문판 | dev-process-framework | data-expert-framework |
 | 짝을 묶는 법 | 이 저장소가 `data-light` 를 **정해 둔 커밋 그대로** `kit/skills/data-light` 에 담아 함께 설치 ([`data-light.lock.json`](data-light.lock.json)) | 전문판은 서브모듈로 고정 |
 
-지금 짝 버전: **data-light 0.2.1** (data-expert-framework-light `828c5ba`).
+지금 짝 버전: **data-light 0.3.0** (data-expert-framework-light `e84d857`).
 
 어떻게 이어지나요:
 - **질문은 한 번만** -- 누가 쓰나·로그인·올리는 곳·개인정보는 `NOW.md` 의 다섯 줄에 한 번 적고, 어느 스킬도 다시 묻지 않습니다.
@@ -86,6 +86,7 @@ AI는 설명서의 **따라 하기를 실제로 해 보고** 저장한 뒤, 바�
 - **확인과 저장** -- `light-check` 가 `datalight.py verify`(설계 검사·성공 기준·규칙 시험·생성물·데이터 보호를 한 번에)를 실제로 돌리고, `light-save` 가 `데이터:` 로 저장합니다.
   실제 데이터(`data/app.db`)·원본 엑셀·`.env` 는 저장하지 않습니다.
 - **돌이킬 수 없는 일은 확인 후** -- DB 만들기·바꾸기·지우기, 파일의 데이터 넣기. 설계를 되돌려도 이미 만든 DB 는 그대로라고 먼저 알립니다.
+- **다시 설치하면 맞춰 둔다** -- 검사 장치는 `datalight.py hook status` 로 보고 버전이 다를 때만 다시 설치하고, 생성물은 늘 다시 만들어 `verify` 합니다.
 
 따라 하기 예시: [`examples/club-dues/`](examples/club-dues/WALKTHROUGH.md) -- 동아리 회비 사이트의 1단계(데이터 설계)를 실제로 수행한 기록.
 data-light 만 따로 쓰고 싶으면 그 저장소의 플러그인으로 설치할 수도 있습니다.

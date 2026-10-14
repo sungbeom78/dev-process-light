@@ -82,7 +82,7 @@
     {
       "name": "pi_member",
       "label": "회원 개인정보",
-      "about": "회원 의 개인정보. 본 테이블과 1:1, 본 행을 지우면 같이 지워진다",
+      "about": "회원의 개인정보. 본 테이블과 1:1, 본 행을 지우면 같이 지워진다",
       "columns": [
         {
           "name": "member_id",
@@ -145,7 +145,7 @@
           "label": "회비 달",
           "type": "text",
           "required": true,
-          "about": "몇 월 회비인지 2026-10 처럼. 한 회원의 같은 달은 한 번만 (화면에서 막는다)"
+          "about": "몇 월 회비인지 2026-10 처럼"
         },
         {
           "name": "amount",
@@ -175,6 +175,12 @@
           "label": "메모",
           "type": "long_text"
         }
+      ],
+      "unique": [
+        [
+          "member_id",
+          "dues_month"
+        ]
       ],
       "sample": [
         {

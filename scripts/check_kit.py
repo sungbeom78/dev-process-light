@@ -198,6 +198,9 @@ def _features_tables(text: str) -> set[str]:
     return out
 
 
+_rc, _ver = _datalight("--version", cwd=ROOT)
+if _lock and _ver.strip() != f"data-light {_lock['version']}":
+    errors.append(f"datalight.py --version 이 '{_ver.strip()}' -- 잠금 파일의 version {_lock['version']} 과 다름")
 _shop = _dl / "examples" / "shop"
 for ex in [_shop, *DATA_EXAMPLES]:
     name = ex.relative_to(ROOT).as_posix()

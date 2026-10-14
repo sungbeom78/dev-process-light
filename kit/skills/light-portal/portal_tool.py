@@ -64,8 +64,9 @@ def data_summary(root: Path, out: Path) -> dict | None:
         tables = []
         for t in m.get("tables") or []:
             cols = [{k: c[k] for k in COL_KEYS if k in c} for c in (t.get("columns") or []) if isinstance(c, dict)]
+            uniq = [[str(x) for x in u] for u in (t.get("unique") or []) if isinstance(u, list)]   # 두 칸 이상 묶은 중복 금지
             tables.append({"name": t.get("name", ""), "label": t.get("label", ""), "about": t.get("about", ""),
-                           "timestamps": t.get("timestamps", True) is not False, "columns": cols})
+                           "timestamps": t.get("timestamps", True) is not False, "columns": cols, "unique": uniq})
         goals = [{"say": g.get("say", ""), "sql": g.get("sql", "")} for g in (m.get("goals") or []) if isinstance(g, dict)]
         info = {"file": MODEL, "project": m.get("project", ""), "db": m.get("db", "sqlite"), "tables": tables,
                 "goals": goals, "not_doing": [str(x) for x in (m.get("not_doing") or [])]}   # 성공 기준의 기대 결과(샘플 값)는 담지 않는다

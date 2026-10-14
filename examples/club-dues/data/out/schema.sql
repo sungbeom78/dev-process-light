@@ -11,7 +11,7 @@ CREATE TABLE member (
   updated_at timestamptz NOT NULL DEFAULT now()
 );
 
--- 회원 개인정보: 회원 의 개인정보. 본 테이블과 1:1, 본 행을 지우면 같이 지워진다
+-- 회원 개인정보: 회원의 개인정보. 본 테이블과 1:1, 본 행을 지우면 같이 지워진다
 CREATE TABLE pi_member (
   member_id bigint NOT NULL REFERENCES member (member_id) ON DELETE CASCADE,
   member_name text NOT NULL,
@@ -31,7 +31,8 @@ CREATE TABLE dues_payment (
   method text NOT NULL DEFAULT '계좌이체' CHECK (method IN ('계좌이체', '현금')),
   memo text,
   created_at timestamptz NOT NULL DEFAULT now(),
-  updated_at timestamptz NOT NULL DEFAULT now()
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE (member_id, dues_month)
 );
 CREATE INDEX ix_dues_payment_member_id ON dues_payment (member_id);
 
@@ -41,7 +42,7 @@ COMMENT ON COLUMN member.joined_on IS '들어온 날';
 COMMENT ON COLUMN member.status IS '상태';
 COMMENT ON COLUMN member.created_at IS '만든 시각';
 COMMENT ON COLUMN member.updated_at IS '고친 시각';
-COMMENT ON TABLE pi_member IS '회원 개인정보 -- 회원 의 개인정보. 본 테이블과 1:1, 본 행을 지우면 같이 지워진다';
+COMMENT ON TABLE pi_member IS '회원 개인정보 -- 회원의 개인정보. 본 테이블과 1:1, 본 행을 지우면 같이 지워진다';
 COMMENT ON COLUMN pi_member.member_id IS '회원 번호';
 COMMENT ON COLUMN pi_member.member_name IS '이름 [개인정보]';
 COMMENT ON COLUMN pi_member.phone IS '전화번호 [개인정보]';
@@ -57,4 +58,23 @@ COMMENT ON COLUMN dues_payment.method IS '낸 방법';
 COMMENT ON COLUMN dues_payment.memo IS '메모';
 COMMENT ON COLUMN dues_payment.created_at IS '만든 시각';
 COMMENT ON COLUMN dues_payment.updated_at IS '고친 시각';
+
+-- ===== 행 접근 규칙 (RLS) =====
+-- Supabase 에서는 사이트 코드에 넣는 공개용 키(anon · publishable)로 누구나 모든 표에 접근을 시도할 수 있습니다.
+-- 그래서 모든 표에 RLS 를 켭니다. 규칙(policy)이 하나도 없으면 공개용 키로는 아무것도 읽고 쓸 수 없습니다 (안전한 기본값).
+-- 표마다 아래 틀 중 이 사이트에 맞는 것 하나를 골라 앞의 '-- ' 를 지우고 실행하세요.
+-- 사이트 코드에는 공개용 키만. service_role · sb_secret_ 키는 절대 넣지 않습니다. 적용 뒤 Supabase 의 Security Advisor 를 확인하세요.
+-- (일반 PostgreSQL 에서는 표 주인 계정에는 RLS 가 적용되지 않아 동작이 바뀌지 않습니다.)
+ALTER TABLE member ENABLE ROW LEVEL SECURITY;
+--   [정해진 사람끼리] CREATE POLICY member_members ON member FOR ALL TO authenticated USING (true) WITH CHECK (true);
+--   [가입형·자기 행] CREATE POLICY member_own ON member FOR ALL TO authenticated USING (owner_id = auth.uid()) WITH CHECK (owner_id = auth.uid());  -- owner_id uuid DEFAULT auth.uid() 칸 필요
+--   [누구나 읽기만]   CREATE POLICY member_read ON member FOR SELECT TO anon, authenticated USING (true);
+ALTER TABLE pi_member ENABLE ROW LEVEL SECURITY;
+-- pi_member 는 개인정보: 모두 읽기 규칙은 쓰지 않습니다. 본인 또는 관리자만.
+--   [가입형·본인만] CREATE POLICY pi_member_own ON pi_member FOR ALL TO authenticated USING (owner_id = auth.uid()) WITH CHECK (owner_id = auth.uid());  -- owner_id uuid DEFAULT auth.uid() 칸 필요
+--   [관리자만]     관리자를 구별하는 방법(관리자 표 또는 JWT claim)을 정한 뒤 USING 에 그 조건을 씁니다
+ALTER TABLE dues_payment ENABLE ROW LEVEL SECURITY;
+--   [정해진 사람끼리] CREATE POLICY dues_payment_members ON dues_payment FOR ALL TO authenticated USING (true) WITH CHECK (true);
+--   [가입형·자기 행] CREATE POLICY dues_payment_own ON dues_payment FOR ALL TO authenticated USING (owner_id = auth.uid()) WITH CHECK (owner_id = auth.uid());  -- owner_id uuid DEFAULT auth.uid() 칸 필요
+--   [누구나 읽기만]   CREATE POLICY dues_payment_read ON dues_payment FOR SELECT TO anon, authenticated USING (true);
 COMMIT;
