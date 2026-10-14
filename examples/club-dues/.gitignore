@@ -1,0 +1,15 @@
+# 비밀 설정
+.env
+.env.*
+# 설치한 도구
+node_modules/
+# 기록 보기 페이지 (dev-notes 에서 다시 만든다)
+dev-notes/portal.html
+# 데이터 (data-light) -- 실제 데이터·원본 파일·가져오기 계획은 올리지 않는다, spec.xlsx 는 다시 만든다
+data/app.db
+data/backup/
+data/*.csv
+data/*.xlsx
+data/out/spec.xlsx
+data/import_plan*.json
+import_plan*.json

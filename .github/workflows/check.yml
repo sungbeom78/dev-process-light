@@ -9,16 +9,20 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ["3.9", "3.12"]   # 3.9 = 짝 스킬 data-light 가 약속한 가장 낮은 버전
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
-        with: { python-version: "3.12" }
+        with: { python-version: "${{ matrix.python }}" }
       - name: kit check
         run: python scripts/check_kit.py
+      - name: paired data-light matches its origin (data-expert-framework-light)
+        if: runner.os == 'Linux' && matrix.python == '3.12'
+        run: python scripts/update_data_light.py --check --upstream
       - name: install twice (bash) and verify user files are kept
         shell: bash
         run: bash scripts/test_install.sh bash
       - name: install twice (PowerShell)
-        if: runner.os == 'Windows'
+        if: runner.os == 'Windows' && matrix.python == '3.12'
         shell: bash            # 스크립트 안에서 pwsh 로 install.ps1 을 실행한다
         run: bash scripts/test_install.sh pwsh

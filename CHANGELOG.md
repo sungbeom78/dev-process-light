@@ -1,5 +1,43 @@
 # CHANGELOG
 
+## 0.8.0 -- 2026-10-14
+- **짝 스킬 `data-light`** ([data-expert-framework-light](https://github.com/sungbeom78/data-expert-framework-light) 0.2.0, `cbbd258`) --
+  dev-process-framework ↔ data-expert-framework 처럼 가벼운 판도 짝을 맞춘다. 저장할 데이터가 생기면 데이터부터 설계하고 돌아온다
+  - 함께 설치: `kit/skills/data-light` 에 원본 커밋을 **바이트 그대로** 담는다 (ZIP·파일 직접 만들기 설치에서도 빠지지 않게 서브모듈 대신 사본).
+    `data-light.lock.json`(저장소·커밋·버전·파일 해시), `scripts/update_data_light.py`(`--ref`·`--from`·`--check`·`--upstream`),
+    `.gitattributes` 로 줄바꿈 변환 막음. CI 가 원본 저장소의 그 커밋과 대조한다
+  - 규칙 12 **데이터부터** (표가 이어짐·여럿이 로그인·엑셀/CSV·개인정보 → `data-light` 로 정본 `data/model.light.json` 을 먼저 확인받음,
+    DB 만들기·바꾸기·지우기·파일 넣기는 확인 후). 예전 규칙 12(고치지 않음)는 13 으로, `data-light` 도 고치지 않는다
+  - **질문은 한 번만**: `NOW.md` "이 프로젝트는" 아래 다섯 줄(누가 쓰나·로그인·올리는 곳·저장하는 데이터·개인정보)을 light 스킬과
+    data-light 가 같이 쓴다. 이미 답이 있으면 묻지 않고, 새로 물은 답은 그 줄과 `DECISIONS.md` 양쪽에
+  - 작업 카드 `데이터:` 줄(없음·브라우저에만·새 표·표 바꿈·읽기만), `FEATURES.md` "데이터 (표)" 절(표 → 쓰는 기능 -- 표를 바꾸면 모두 점검),
+    `NAMES.md` 는 데이터 이름을 옮겨 적지 않고 정본의 이름표를 따른다(브라우저 저장 이름은 적는다)
+  - `light-start` 넘겨주기 순서 -- 카드·할 일에서 이미 정한 것은 data-light 의 성공 기준(`goals`)·만들지 않을 것(`not_doing`)으로 옮겨 적고 다시 묻지 않음,
+    데이터 검사 장치(`datalight.py hook install`: 정본이 바뀐 저장은 `verify` 통과해야)를 처음 한 번 묻고 `## 설정` 에
+  - `light-check` 데이터 확인은 `verify` 한 관문(설계 검사·성공 기준·규칙 시험·생성물·데이터 보호) + 처음엔 `--mutate`, 코드 이름·Supabase·올리면 안 되는 것 ·
+    `light-save` 저장 종류 `데이터:`·데이터 기록(`dev-notes/log/데이터/`)·장치가 멈추면 `--no-verify` 금지 · `light-undo` 설계를 되돌려도 DB 는 그대로임을 먼저 알림·백업 ·
+    `light-resume` 데이터 한 줄·짝 스킬과 검사 장치 설치 확인·예전 프로젝트 칸 채우기 · `light-manual` "데이터는 어디에" 페이지
+  - `light-portal` **데이터** 메뉴: 성공 기준·이번엔 안 할 것·표·칸(이름표·자료형·필수·개인정보)·표 사이 연결·쓰는 기능·관계 그림/정의서 바로 가기.
+    구조만 담고 샘플 값·기대 결과는 담지 않는다.
+    '지금' 의 기능 수가 데이터 절의 줄까지 세던 것을 고침
+  - 설치기: 짝 스킬 버전을 알리고, 검사 장치의 도구 사본(`.data-light/datalight.py`)이 있으면 짝 버전으로 맞추고, 파이썬이 없으면 무엇이 안 되는지 알림.
+    `data/` 는 건드리지 않는다
+  - 예시 [`examples/club-dues/`](examples/club-dues/WALKTHROUGH.md): 동아리 회비 사이트 1단계(데이터 설계)를 실제로 수행한 기록.
+    `check_kit.py` 가 예시의 정본·생성물·기록(다섯 줄·데이터 절·흐름)을 실제 도구로 검사한다
+  - **실제로 어디에 저장하나**: 누가 쓰나·올리는 곳으로 정한다 (혼자·정적 호스팅 → 브라우저 저장소, 내 컴퓨터만 → SQLite + 작은 서버,
+    여럿이 로그인 → Supabase). 설계는 어느 경우든 data-light. 브라우저 저장이면 규칙(필수·선택값)은 화면 코드의 완료 기준으로
+  - **Supabase 보안**: 모든 표에 행 접근 규칙(RLS)과 규칙(policy), 보안 점검(Security Advisor), 코드에는 공개용 키만·관리자 키(service_role)는 절대 안 됨 (규칙 8)
+  - **실제 값은 올리지 않는다**: 샘플·기대 결과는 만든 값, 가져오기 계획(`import_plan*.json` -- 실제 값이 들어 있다)을 `.gitignore` 에,
+    가져올 파일은 `data/` 안에서 상대 경로로
+  - **데이터가 걸린 되돌리기**: 빠지는 표·칸에 데이터가 있는지 먼저 보고 고르게 한다(설계에 남기기 / 백업 후 빼기 / 취소).
+    `verify` 의 "정본에서 빠졌습니다" 는 AI 가 혼자 고치지 않는다 (`light-check`)
+  - **이미 DB 가 있는 프로젝트**: 있는 표·칸을 읽어 정본을 만들고 실제 DB 와 비교해 확인받는다
+  - **다시 설치한 뒤**(`light-resume`): 설치로 바뀐 파일만 있으면 묻지 않고 맞춘다 -- 검사 장치 다시 설치, `build`·`verify`, `정리:` 저장
+- 기록 보기 페이지를 처음 만들 때 `.gitignore` 에 넣은 줄이 저장되지 않고 남던 문제: 첫 저장 전에 만들고(`light-resume`), 그 뒤에 생기면 바로 저장(`light-save`)
+- `install.ps1` 을 BOM 이 있는 UTF-8 로 (Windows PowerShell 5.1 에서 한글이 깨지지 않게, `check_kit.py` 가 확인). 설치기는 파이썬을 실제로 실행해 보고
+  찾는다 (Windows 의 가짜 python3 를 건너뜀)
+- CI: Python 3.9·3.12 × Ubuntu·Windows·macOS. `check_kit.py` 는 데이터 도구를 cp1252 파이프로 돌려 한글이 깨지지 않는지, README 의 짝 버전·커밋이 잠금 파일과 같은지 본다
+
 ## 0.7.0 -- 2026-10-11
 - **작업 기록 세 층** -- 기록이 많아져도 AI 가 전부 읽지 않게: ① 흐름 `dev-notes/LOG.md` (단계·**기능**·무엇을·결과·누가 한 줄)
   ② `dev-notes/log/<기능>/<날짜>.md` 의 `## 목록` ③ 같은 파일 `## 자세히`. 지난 일은 ①→②→③ 순서로 필요한 것만 읽는다

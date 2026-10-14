@@ -1,4 +1,4 @@
-"""기록 보기 페이지 만들기 -- dev-notes 기록과 저장(git) 목록을 한 화면에서 보는 HTML 파일 한 개.
+"""기록 보기 페이지 만들기 -- dev-notes 기록과 저장(git) 목록, 데이터 설계(data-light 정본이 있으면)를 한 화면에서 보는 HTML 파일 한 개.
 
     python portal_tool.py build [--root .] [--out dev-notes/portal.html]
 
@@ -24,9 +24,11 @@ except Exception:  # noqa: BLE001
 
 HERE = Path(__file__).resolve().parent
 NOTES = ["NOW", "FEATURES", "DECISIONS", "LOG", "NAMES", "LEARNED"]
-KINDS = ["기능", "수정", "모양", "정리", "중간 저장", "되돌리기", "준비"]
+KINDS = ["기능", "수정", "모양", "정리", "데이터", "중간 저장", "되돌리기", "준비"]
 DEFAULT_OUT = "dev-notes/portal.html"
 MAX_FEATURE_FILES = 400
+MODEL = "data/model.light.json"          # 짝 스킬 data-light 의 정본
+COL_KEYS = ("name", "label", "type", "required", "unique", "choices", "ref", "on_delete", "key", "personal", "about")
 
 
 def _git(root: Path, *args: str) -> str:
@@ -43,6 +45,35 @@ def _project_name(now: str, root: Path) -> str:
     m = re.search(r"## 이 프로젝트는\s*\n+([^\n#<][^\n]*)", now or "")
     line = (m.group(1).strip() if m else "") or root.name
     return line if len(line) <= 60 else line[:58] + "…"
+
+
+def _rel(target: Path, out: Path) -> str:
+    try:
+        return Path(os.path.relpath(target, out.parent)).as_posix()
+    except ValueError:            # Windows 에서 드라이브가 다르면
+        return target.resolve().as_uri()
+
+
+def data_summary(root: Path, out: Path) -> dict | None:
+    """data-light 정본의 구조만 (샘플 행·기본값 밖의 값은 담지 않는다 -- 페이지는 구조를 보여 주는 곳)."""
+    p = root / MODEL
+    if not p.is_file():
+        return None
+    try:
+        m = json.loads(p.read_text(encoding="utf-8"))
+        tables = []
+        for t in m.get("tables") or []:
+            cols = [{k: c[k] for k in COL_KEYS if k in c} for c in (t.get("columns") or []) if isinstance(c, dict)]
+            tables.append({"name": t.get("name", ""), "label": t.get("label", ""), "about": t.get("about", ""),
+                           "timestamps": t.get("timestamps", True) is not False, "columns": cols})
+        goals = [{"say": g.get("say", ""), "sql": g.get("sql", "")} for g in (m.get("goals") or []) if isinstance(g, dict)]
+        info = {"file": MODEL, "project": m.get("project", ""), "db": m.get("db", "sqlite"), "tables": tables,
+                "goals": goals, "not_doing": [str(x) for x in (m.get("not_doing") or [])]}   # 성공 기준의 기대 결과(샘플 값)는 담지 않는다
+    except (ValueError, AttributeError, TypeError) as e:
+        info = {"file": MODEL, "error": f"정본을 읽지 못함: {e}", "tables": []}
+    info["links"] = {n: _rel(root / "data" / "out" / n, out) for n in ("erd.md", "spec.md", "schema.sql")
+                     if (root / "data" / "out" / n).is_file()}
+    return info
 
 
 def collect(root: Path, out: Path) -> dict:
@@ -67,14 +98,12 @@ def collect(root: Path, out: Path) -> dict:
         saves.append({"hash": h, "at": when, "msg": msg, "kind": kind})
     dirty = [ln[3:] for ln in _git(root, "status", "--porcelain").splitlines() if ln[3:] and not ln[3:].startswith("dev-notes/portal")]
     manual = root / "manual" / "index.html"
-    try:
-        manual_href = Path(os.path.relpath(manual, out.parent)).as_posix() if manual.is_file() else None
-    except ValueError:
-        manual_href = manual.resolve().as_uri()
+    manual_href = _rel(manual, out) if manual.is_file() else None
     return {"project": _project_name(notes["NOW"], root), "folder": str(root), "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
             "notes": notes, "archive": [{"name": p.stem, "text": p.read_text(encoding="utf-8")} for p in archive[:24]],
             "feature_logs": feature_logs,
-            "saves": saves, "dirty": dirty, "remote": bool(_git(root, "remote")), "manual": manual_href}
+            "saves": saves, "dirty": dirty, "remote": bool(_git(root, "remote")), "manual": manual_href,
+            "data": data_summary(root, out)}
 
 
 def _ensure_ignored(root: Path, out: Path) -> str | None:

@@ -1,0 +1,208 @@
+{
+  "format": "data-light/1",
+  "project": "동아리 회비",
+  "db": "postgresql",
+  "goals": [
+    {
+      "say": "활동 중인데 이번 달(2026-10) 회비를 안 낸 회원을 볼 수 있다 (미납 보기)",
+      "sql": "SELECT m.member_id FROM member m WHERE m.status = '활동' AND NOT EXISTS (SELECT 1 FROM dues_payment d WHERE d.member_id = m.member_id AND d.dues_month = '2026-10')",
+      "expect": [
+        [
+          2
+        ]
+      ]
+    },
+    {
+      "say": "회원별로 지금까지 낸 회비 합계를 볼 수 있다 (회비 입력·미납 보기)",
+      "sql": "SELECT member_id, SUM(amount) FROM dues_payment GROUP BY member_id",
+      "expect": [
+        [
+          1,
+          20000
+        ],
+        [
+          2,
+          10000
+        ]
+      ]
+    }
+  ],
+  "not_doing": [
+    "문자 알림",
+    "자동이체 연동"
+  ],
+  "tables": [
+    {
+      "name": "member",
+      "label": "회원",
+      "about": "동아리 회원 한 명",
+      "columns": [
+        {
+          "name": "member_id",
+          "label": "회원 번호",
+          "type": "id"
+        },
+        {
+          "name": "joined_on",
+          "label": "들어온 날",
+          "type": "date",
+          "required": true
+        },
+        {
+          "name": "status",
+          "label": "상태",
+          "type": "text",
+          "required": true,
+          "choices": [
+            "활동",
+            "휴면",
+            "탈퇴"
+          ],
+          "default": "활동"
+        }
+      ],
+      "sample": [
+        {
+          "member_id": 1,
+          "joined_on": "2026-03-02",
+          "status": "활동"
+        },
+        {
+          "member_id": 2,
+          "joined_on": "2026-03-02",
+          "status": "활동"
+        },
+        {
+          "member_id": 3,
+          "joined_on": "2026-09-01",
+          "status": "휴면"
+        }
+      ]
+    },
+    {
+      "name": "pi_member",
+      "label": "회원 개인정보",
+      "about": "회원 의 개인정보. 본 테이블과 1:1, 본 행을 지우면 같이 지워진다",
+      "columns": [
+        {
+          "name": "member_id",
+          "label": "회원 번호",
+          "type": "ref",
+          "ref": "member",
+          "key": true,
+          "on_delete": "delete"
+        },
+        {
+          "name": "member_name",
+          "label": "이름",
+          "type": "text",
+          "required": true,
+          "personal": "name"
+        },
+        {
+          "name": "phone",
+          "label": "전화번호",
+          "type": "text",
+          "personal": "phone"
+        }
+      ],
+      "sample": [
+        {
+          "member_name": "김하나",
+          "phone": "010-0000-0001",
+          "member_id": 1
+        },
+        {
+          "member_name": "이두리",
+          "phone": "010-0000-0002",
+          "member_id": 2
+        },
+        {
+          "member_name": "박세찬",
+          "member_id": 3
+        }
+      ]
+    },
+    {
+      "name": "dues_payment",
+      "label": "회비 납부",
+      "about": "회원이 어느 달 회비를 언제 얼마 냈는지 한 번에 한 줄",
+      "columns": [
+        {
+          "name": "dues_payment_id",
+          "label": "납부 번호",
+          "type": "id"
+        },
+        {
+          "name": "member_id",
+          "label": "회원",
+          "type": "ref",
+          "ref": "member",
+          "required": true
+        },
+        {
+          "name": "dues_month",
+          "label": "회비 달",
+          "type": "text",
+          "required": true,
+          "about": "몇 월 회비인지 2026-10 처럼. 한 회원의 같은 달은 한 번만 (화면에서 막는다)"
+        },
+        {
+          "name": "amount",
+          "label": "금액",
+          "type": "money",
+          "required": true
+        },
+        {
+          "name": "paid_on",
+          "label": "낸 날",
+          "type": "date",
+          "required": true
+        },
+        {
+          "name": "method",
+          "label": "낸 방법",
+          "type": "text",
+          "required": true,
+          "choices": [
+            "계좌이체",
+            "현금"
+          ],
+          "default": "계좌이체"
+        },
+        {
+          "name": "memo",
+          "label": "메모",
+          "type": "long_text"
+        }
+      ],
+      "sample": [
+        {
+          "dues_payment_id": 1,
+          "member_id": 1,
+          "dues_month": "2026-09",
+          "amount": 10000,
+          "paid_on": "2026-09-05",
+          "method": "계좌이체"
+        },
+        {
+          "dues_payment_id": 2,
+          "member_id": 1,
+          "dues_month": "2026-10",
+          "amount": 10000,
+          "paid_on": "2026-10-04",
+          "method": "계좌이체"
+        },
+        {
+          "dues_payment_id": 3,
+          "member_id": 2,
+          "dues_month": "2026-09",
+          "amount": 10000,
+          "paid_on": "2026-09-12",
+          "method": "현금",
+          "memo": "모임 때 총무에게"
+        }
+      ]
+    }
+  ]
+}

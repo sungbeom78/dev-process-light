@@ -3,3 +3,5 @@
 *.md text eol=lf
 *.ps1 text eol=crlf
 *.png binary
+# data-light 사본은 원본과 바이트 그대로 (줄바꿈을 바꾸지 않는다 -- scripts/update_data_light.py 가 해시로 대조)
+kit/skills/data-light/** -text -eol

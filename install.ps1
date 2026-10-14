@@ -1,6 +1,7 @@
-# dev-process-light 설치 -- Windows PowerShell (5.1 이상)
+﻿# dev-process-light 설치 -- Windows PowerShell (5.1 이상)
 #   powershell -ExecutionPolicy Bypass -File install.ps1 [프로젝트 폴더]   (생략하면 현재 폴더)
-# install.sh 와 같은 일을 한다: 스킬 복사, dev-notes 는 없을 때만, AGENTS.md 블록 넣기/갱신, CLAUDE.md 연결.
+# install.sh 와 같은 일을 한다: 스킬 복사(light-* 7개 + 짝 데이터 설계 스킬 data-light), dev-notes 는 없을 때만,
+# AGENTS.md 블록 넣기/갱신, CLAUDE.md 연결.
 param([string]$Target = ".")
 $ErrorActionPreference = "Stop"
 
@@ -27,6 +28,19 @@ foreach ($hostDir in @(".claude\skills", ".agents\skills")) {
     Copy-Item -Recurse $_.FullName $d
   }
   Write-Host "  [OK] 스킬 $((Get-ChildItem -Directory (Join-Path $Kit "skills")).Count)개 -> $hostDir"
+}
+$Lock = Join-Path $PSScriptRoot "data-light.lock.json"
+if (Test-Path $Lock) {
+  $pin = (Read-Utf8 $Lock) | ConvertFrom-Json
+  Write-Host "  [OK] 짝 스킬 data-light $($pin.version) (data-expert-framework-light $($pin.commit.Substring(0, 7))) -- 저장할 데이터가 생기면 씁니다"
+}
+# 데이터 검사 장치(datalight.py hook install)가 프로젝트에 둔 도구 사본도 짝 버전으로 맞춘다
+$Dlt = Join-Path $Kit "skills\data-light\scripts\datalight.py"
+$DltDest = Join-Path $Target ".data-light\datalight.py"
+# 줄바꿈(CRLF)만 다른 것은 같은 것으로 본다. 커밋 검사 훅 자체는 light-resume 이 `hook install` 로 다시 맞춘다
+if ((Test-Path $DltDest) -and ((Read-Utf8 $DltDest).Replace("`r", "") -cne (Read-Utf8 $Dlt).Replace("`r", ""))) {
+  Copy-Item -Force $Dlt $DltDest
+  Write-Host "  [OK] .data-light\datalight.py 도 짝 버전으로 바꿈 -- light-resume 이 커밋 검사 훅도 다시 맞추고 저장합니다"
 }
 
 # 2) 기록 파일 (없을 때만)
@@ -61,6 +75,17 @@ if (-not (Test-Path $c)) { Write-Utf8 $c "@AGENTS.md`n"; Write-Host "  [OK] CLAU
 elseif (-not ((Read-Utf8 $c).Contains("@AGENTS.md"))) {
   Write-Utf8 $c ((Read-Utf8 $c).TrimEnd("`r", "`n") + "`n`n@AGENTS.md`n"); Write-Host "  [OK] CLAUDE.md 에 @AGENTS.md 추가"
 } else { Write-Host "  [유지] CLAUDE.md" }
+
+# 쓸 수 있는 파이썬인지 실제로 실행해 본다 (Windows 의 가짜 python3 -- 스토어 안내 -- 는 여기서 걸러진다)
+$Py = $null
+foreach ($cmd in @("python", "py", "python3")) {
+  if (Get-Command $cmd -ErrorAction SilentlyContinue) {
+    try { & $cmd -c "import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)" 2>$null | Out-Null; if ($LASTEXITCODE -eq 0) { $Py = $cmd; break } } catch {}
+  }
+}
+if (-not $Py) {
+  Write-Host "  [참고] 파이썬이 없습니다 -- 데이터 설계 검사(data-light)·기록 보기 페이지·설명서 검토에만 필요합니다 (3.9 이상, 나머지는 그대로 동작)"
+}
 
 Write-Host ""
 Write-Host "설치 끝. 이제 이 폴더에서 Claude Code(또는 Codex)를 열고 이렇게 말하세요:"
