@@ -85,7 +85,7 @@ description: 새 기능을 만들거나 기존 기능을 바꾸기 전에 쓴다
    |---|---|---|
    | 혼자 · 인터넷 정적 호스팅(GitHub Pages 등) | 그 기기의 브라우저 저장소 -- 정본의 표·칸 이름 그대로 (`data/app.db` 는 만들지 않는다 -- verify 는 메모리에서 시험한다) | `data-light 설계 · 실제 저장은 브라우저` |
    | 혼자 · 내 컴퓨터에서만 | SQLite `data/app.db` + 내 컴퓨터에서 도는 작은 서버(파이썬 등) | `data-light 설계 · SQLite (data/app.db)` |
-   | 여럿이 · 로그인 | Supabase (PostgreSQL) -- 정본은 `"db": "postgresql"` | `data-light 설계 · Supabase` |
+   | 여럿이 · 로그인 | Supabase (PostgreSQL) -- 정본은 `"db": "postgresql"` + 누가 볼 수 있나(`signup`·`access`, 아래 4) | `data-light 설계 · Supabase` |
    | 여럿이 · 로그인 없음 | 로그인을 넣자고 권한다 -- 로그인 없이 여럿이 쓰는 저장소는 주소만 알면 누구나 읽고 바꿀 수 있다고 그대로 말하고, 사용자가 고르게 한다 | (사용자 답대로) |
    | 이미 쓰는 DB 가 있음 | 그 DB -- 아래 "이미 DB 가 있으면" | `data-light 설계 · <그 DB>` |
 
@@ -100,6 +100,22 @@ description: 새 기능을 만들거나 기존 기능을 바꾸기 전에 쓴다
    **샘플 행(`sample`)과 성공 기준의 기대 결과(`expect`)는 만든 값으로** 쓴다 -- 가져온 엑셀·CSV 의 실제 이름·연락처를 옮겨 적지 않는다 (정본은 저장되고 올라간다).
    두 칸을 묶어야 중복이 되는 것(한 회원은 한 달에 회비 한 번)은 표의 `"unique": [["member_id", "dues_month"]]` 로 정본에 적는다 --
    DB(SQLite·Supabase)가 막아 준다 (브라우저 저장이면 위처럼 화면 코드도 막는다).
+   **Supabase 면 누가 볼 수 있는지도 정본에** -- "누가 쓰나" 답으로 AI 가 정하고 `DECISIONS.md` 에 `[AI]`(이유·다른 안)로 남긴다.
+   `build` 가 이대로 실제 행 접근 규칙(RLS policy)을 만든다:
+
+   | 누가 쓰나 | 정본 |
+   |---|---|
+   | 정해진 사람끼리 (임원 3명 등) | `"signup": "closed"` + 표마다 `"access": "members"` -- Supabase 에서 **새 가입을 꺼야** 한다 (켜 두면 아무나 가입해 다 읽는다. `closed` 가 없으면 `check` 가 막는다). 계정은 사용자가 Supabase 에서 만든다 (아래 6) |
+   | 아무나 가입 | `"signup": "open"` + 자기 것만 보는 표에 owner 칸 `{"name": "owner_id", "label": "만든 사람", "type": "owner"}` 과 `"access": "own"` (`pi_` 표의 `own` 은 짝 표의 주인을 따른다) |
+   | 누구나 보는 목록 | 그 표만 `"access": "read"` (읽기만, `pi_` 표에는 쓸 수 없다) |
+
+   `split --write` 는 `access` 를 `pi_` 표로 옮겨 주지 않는다 -- 나눈 뒤 `pi_` 표에도 `access` 를 적는다 (없으면 그 표는 아무도 못 읽는다).
+   `pi_` 표는 짝 표와 같게 하되, 짝 표가 `read` 면 `pi_` 는 `own`(짝 표에 owner 칸이 있어야 한다) 또는 비워 두기(사이트에서는 못 읽고 Supabase 화면에서만).
+   `access` 는 표마다 하나라 **"누구나 읽고, 쓰기는 자기 것만(게시판)"·"누구나 읽고, 쓰기는 임원만"** 은 정본만으로 적지 못한다 --
+   쓰는 쪽(`own`·`members`)을 정본에 적고, 읽기 규칙 `CREATE POLICY <표>_read ON <표> FOR SELECT TO anon, authenticated USING (true);` 를
+   `data/supabase-policies.sql` 에 손으로 써서 (아래 6처럼) 실행한다. `pi_` 표에는 쓰지 않고, 사용자에게 보여 주고 `DECISIONS.md` 에 `[AI]` 로.
+   `read` 만 준 표는 사이트에서 쓸 수 없다 -- 내용은 사용자가 Supabase 의 Table Editor 에서 넣는다.
+
    사용자에게는 그림(ERD)·성공 기준 결과·표로 "이렇게 맞나요?" 하고 확인받는다.
 5. 확인받으면 고친다: `FEATURES.md` 데이터 절(표 → 쓰는 기능), `NOW.md` "저장하는 데이터"·"개인정보".
    **데이터 검사 장치** -- `NOW.md` `## 설정` 에 `데이터 검사 장치:` 줄이 없거나 `(아직 정하지 않음)` 이면 처음 정본을 저장하기 전에 한 번 묻는다:
@@ -121,30 +137,32 @@ description: 새 기능을 만들거나 기존 기능을 바꾸기 전에 쓴다
      계획을 표로 보여 주고 확인 → 사용자가 좋다고 하면 계획의 `"approved"` 를 `true` 로 바꾸고
      `import apply data/import_plan.json --model data/model.light.json --db data/app.db --approval "<사용자 답 그대로>"`.
      원본이 프로젝트 밖에 있으면 계획에 파일 이름만 적히므로 apply 때 `--file <위치>`.
-     **`import apply` 는 SQLite(`data/app.db`)에만 넣는다** -- 실제 저장이 Supabase·브라우저인 프로젝트에서는 쓰지 않는다 (화면이 읽지 않는 파일에
-     실제 이름·연락처만 남는다). Supabase 는 계획으로 칸 이름을 맞춘 CSV 를 Supabase 의 표 가져오기로 넣는다 (사용자 확인 후, 개인정보 칸은 `pi_` 표로).
-   - **Supabase**: `build --db postgresql` 의 SQL 은 **모든 표**에 행 접근 규칙(RLS)을 켜고, 표마다 규칙(policy) 틀을 주석으로 단다
-     (정해진 사람끼리 · 가입형 자기 행 · 누구나 읽기만, `pi_` 표는 본인·관리자만). "누가 쓰나" 답에 맞는 틀을 고른다:
-     - **정해진 사람끼리**(임원 3명 등) -- [정해진 사람끼리] 틀("로그인한 사람만")은 **새 가입을 꺼야만 안전하다**. Supabase 는 처음에 가입이
-       켜져 있어, 그대로면 아무나 가입해 모든 표를 읽고 바꿀 수 있다 -- 가입 끄기(Authentication 설정)를 사용자에게 부탁하고 꺼진 것을 확인한 뒤에
-       쓴다. 가입이 꺼져 있을 때만 그 사람들이 곧 관리자이므로 `pi_` 표에도 같은 틀(표 이름만 바꿔서)을 쓴다. 꺼져 있지 않으면 `pi_` 는 본인·관리자만.
-     - **아무나 가입** -- [가입형·자기 행] 틀(`auth.uid()`). 이 틀은 `owner_id` 칸이 필요한데 정본 형식에는 그 자료형이 없다 --
-       그 칸을 더하는 SQL 을 따로 쓰고, 정본과 달라지는 점을 사용자에게 알리고 `DECISIONS.md` 에 남긴다. `pi_` 는 본인·관리자만.
-     규칙을 고르기 전에는 공개용 키로 아무것도 읽고 쓸 수 없다 -- 화면이 비어 보이면 이것부터 본다.
-     `schema.sql` 의 "앞의 '-- ' 를 지우고" 는 **SQL 편집기에 붙여 넣은 다음에** 지우라는 뜻이다 -- `data/out/schema.sql`(만들어지는 파일)을 고치면
-     `verify` 가 실패한다. 실제로 실행한 규칙 SQL 은 `data/supabase-policies.sql` 에 그대로 남겨 저장하고(생성물 밖, 비밀 없음),
-     무엇을 왜 골랐는지 `DECISIONS.md` 에 `[AI]`(이유)와 사용자 답으로. 적용 전에 고른 규칙을 사용자에게 보여 주고, 적용한 뒤 Supabase 의
-     보안 점검(Security Advisor, 도구가 있으면 advisors)에서 RLS·키 경고가 0인지 본다 (다른 경고는 사용자에게 보여 준다).
-     **이미 만든 Supabase** 에는 `schema.sql` 전체를 다시 실행하지 않는다 (`CREATE TABLE` 이 실패한다) -- 바뀐 부분만 골라 실행한다.
+     `import apply` 는 SQLite(`data/app.db`) 전용이다 -- 정본이 Supabase(PostgreSQL)면 도구가 멈춘다(`--force-sqlite` 는 쓰지 않는다).
+     Supabase 는 계획으로 칸 이름을 맞춘 CSV 를 Table Editor 의 CSV 가져오기로 넣는다 (사용자 확인 후). 자동 번호 칸은 직접 넣을 수 없어서
+     ① 본 표의 CSV 를 번호 칸과 개인정보 칸 없이 넣고 ② 매겨진 번호를 Table Editor 에서 확인해(넣은 순서대로) 원본 행과 짝지은 뒤
+     ③ 그 번호와 개인정보 칸으로 `pi_` 표의 CSV 를 만들어 넣는다. 실제 값이 든 CSV 는 `data/` 안에만 두고(저장되지 않는다) 다 넣은 뒤 지울지 묻는다.
+     실제 저장이 브라우저인 프로젝트도 `import apply` 를 쓰지 않는다 (화면이 읽지 않는 파일에 실제 이름·연락처만 남는다).
+   - **Supabase**: `build --db postgresql` 의 SQL 은 **모든 표**에 행 접근 규칙(RLS)을 켜고, 정본의 `access` 대로 실제 규칙(policy)을 만든다
+     (위 4). `access` 가 없는 표는 규칙 없이(= 공개용 키로 아무것도 못 함) 틀만 주석으로 남는다 -- 틀을 손으로 쓰기보다 정본에 `access` 를 적는다.
+     - `"signup": "closed"` 는 정본에 적는 약속일 뿐 Supabase 설정을 바꾸지 않는다 -- **새 가입 끄기**(Authentication 설정의 "Allow new users to sign up")와
+       **익명 로그인 끄기**("Allow anonymous sign-ins" -- 익명 사용자도 로그인한 사람으로 친다)를 사용자에게 부탁하고 **꺼진 것을 확인한 뒤에** SQL 을 적용한다.
+       끄지 않았으면 적용하지 않는다.
+     - 가입을 끈 사이트의 **계정**은 사용자가 Supabase 의 Authentication → Users → **Add user**(새로 만들기 또는 초대)로 만든다 -- 가입이 꺼져 있어도 된다.
+       사이트에는 로그인 화면만 만들고 가입 화면·`signUp` 호출은 만들지 않는다. 사람을 더할 때도 가입을 켜지 않는다 (켜 둔 동안 아무나 가입해 모든 표를 읽는다).
+     - 그래도 틀을 손으로 써야 하면 `data/out/schema.sql`(만들어지는 파일 -- 고치면 `verify` 가 실패한다)은 고치지 말고 SQL 편집기에 붙여 넣은 뒤
+       주석을 풀어 실행하고, 실행한 SQL 은 `data/supabase-policies.sql` 에 그대로 남겨 저장한다.
+     - 적용 전에 규칙을 사용자에게 쉬운 말로 보여 주고("임원 세 분만 로그인해서 모든 표를 보고 고칠 수 있어요"), 적용한 뒤 Supabase 의
+       보안 점검(Security Advisor, 도구가 있으면 advisors)에서 RLS·키·익명 로그인 경고가 0인지 본다 (다른 경고는 사용자에게 보여 준다).
+     - **이미 만든 Supabase** 에는 `schema.sql` 전체를 다시 실행하지 않는다 (`CREATE TABLE` 이 실패한다) -- 바뀐 부분만 골라 실행한다.
      사이트 코드에는 **공개용 키(anon·publishable)만**, 관리자 키(service_role·`sb_secret_…`)는 절대 넣지 않는다.
 7. 다음 단계(화면)로 돌아온다. 코드는 정본의 표·칸 이름을 그대로 쓴다.
 
 이미 DB 가 있으면 (정본 없이 SQLite 파일·Supabase 를 쓰던 프로젝트): 새로 설계하지 않고 **있는 표·칸을 읽어 정본을 만든다**.
 SQLite 는 `datalight.py import schema data/app.db` 가 초안 `data/model.light.json` 을 만든다 (이름표는 비어 있다 -- AI 가 채운다).
 도구가 내는 `확인:` 줄(규칙에 안 맞는 이름·행을 구별할 칸이 없는 표)은 혼자 고치지 않고 사용자에게 알리고 고르게 한다:
-DB 의 이름을 바꾸기(확인 후 백업하고, 그 이름을 쓰는 코드도 함께) / **비어 있는 표만** 정본 밖에 두기(`FEATURES.md` 에 적어 둔다 -- 데이터가 든 표를
-정본에서 빼면 `verify` 가 "정본에서 빠졌습니다" 로 계속 실패해 저장이 막힌다). 그 밖에는 DB 를 바꾸지 않는다.
-초안에는 개인정보 표시가 없다 -- 이름·전화·이메일·주소 같은 칸은 AI 가 `personal` 을 표시하고, `pi_` 표로 옮기는 것은 DB 를 바꾸는 일이라
+DB 의 이름을 바꾸기(확인 후 백업하고, 그 이름을 쓰는 코드도 함께) / 그 표는 정본 밖에 두기 -- 초안의 `tables` 에서 그 표를 빼고
+`"outside": ["log"]` 에 이름을 적는다 (`verify` 의 데이터 보호 검사에서 빠진다, 데이터는 그대로). `FEATURES.md` 에도 적는다. 그 밖에는 DB 를 바꾸지 않는다.
+도구가 "개인정보로 보입니다" 라고 한 칸은 사용자에게 맞는지 묻고 `personal` 을 표시한다. `pi_` 표로 옮기는 것은 DB 를 바꾸는 일이라
 사용자에게 알리고 확인받은 뒤 백업하고 한다 (그전까지는 `check` 가 막는다고 그대로 말한다).
 Supabase 는 AI 가 표 목록을 보고 옮겨 적는다. 만든 정본은 `build` 한 SQL 과 실제 DB 를 비교해 다른 점을 보여 주고 확인받는다.
 SQLite 면 `verify --db <파일>` 로 데이터가 든 표·칸이 정본에서 빠지지 않았는지 본다.

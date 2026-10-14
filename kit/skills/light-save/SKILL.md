@@ -37,7 +37,7 @@ description: 단계가 끝날 때마다(기획 합의·만들기 한 덩어리·
    git commit -m "기능: 할 일 목록 - 입력과 목록"
    ```
    데이터 설계를 고쳤으면 정본과 생성물도 같은 저장에: `git add data/model.light.json data/out/` (가져오기를 했으면 `data/import_log.jsonl` 도 --
-   행의 값은 없고 언제·몇 행·사용자 승인 답이 있는 기록이다. Supabase 규칙을 실행했으면 `data/supabase-policies.sql`. 데이터 검사 장치를 처음
+   행의 값은 없고 언제·몇 행·사용자 승인 답이 있는 기록이다. Supabase 규칙 틀을 손으로 실행했으면 `data/supabase-policies.sql`. 데이터 검사 장치를 처음
    설치했으면 `.data-light/`·`.gitignore` 와, 만들어졌으면 `.github/workflows/data-light.yml`).
    **데이터 검사 장치가 저장을 멈추면** `--no-verify` 로 건너뛰지 않는다 -- 나온 FAIL 줄이 문제다. `light-check` 의 "문제가 나면" 으로 간다.
    "python 을 찾지 못해 검사를 건너뜁니다" 가 나오면 저장은 됐지만 검사는 안 된 것이다 -- 사용자에게 알리고 파이썬을 찾을 때까지 `light-check` 로 직접 `verify`.

@@ -61,20 +61,17 @@ COMMENT ON COLUMN dues_payment.updated_at IS '고친 시각';
 
 -- ===== 행 접근 규칙 (RLS) =====
 -- Supabase 에서는 사이트 코드에 넣는 공개용 키(anon · publishable)로 누구나 모든 표에 접근을 시도할 수 있습니다.
--- 그래서 모든 표에 RLS 를 켭니다. 규칙(policy)이 하나도 없으면 공개용 키로는 아무것도 읽고 쓸 수 없습니다 (안전한 기본값).
--- 표마다 아래 틀 중 이 사이트에 맞는 것 하나를 골라 앞의 '-- ' 를 지우고 실행하세요.
+-- 그래서 모든 표에 RLS 를 켭니다. 규칙(policy)이 없는 표는 공개용 키로 아무것도 읽고 쓸 수 없습니다 (안전한 기본값).
+-- 규칙은 정본의 표에 "access" 를 적고 다시 build 하면 아래에 만들어집니다 (권장: members · own · read).
+-- 틀만 있는 표는 이 파일을 고치지 말고, SQL 편집기에 붙여 넣은 뒤 고른 틀의 주석을 풀어 실행하고,
+-- 실행한 규칙은 data/supabase-policies.sql 에 적어 둡니다 (이 파일을 고치면 verify 가 '정본과 다릅니다'로 멈춥니다).
 -- 사이트 코드에는 공개용 키만. service_role · sb_secret_ 키는 절대 넣지 않습니다. 적용 뒤 Supabase 의 Security Advisor 를 확인하세요.
 -- (일반 PostgreSQL 에서는 표 주인 계정에는 RLS 가 적용되지 않아 동작이 바뀌지 않습니다.)
+-- 이 사이트는 새 가입을 끈 것으로 정했습니다(signup: closed). Supabase 의 가입 설정이 꺼져 있는지 확인하세요.
 ALTER TABLE member ENABLE ROW LEVEL SECURITY;
---   [정해진 사람끼리] CREATE POLICY member_members ON member FOR ALL TO authenticated USING (true) WITH CHECK (true);
---   [가입형·자기 행] CREATE POLICY member_own ON member FOR ALL TO authenticated USING (owner_id = auth.uid()) WITH CHECK (owner_id = auth.uid());  -- owner_id uuid DEFAULT auth.uid() 칸 필요
---   [누구나 읽기만]   CREATE POLICY member_read ON member FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY member_members ON member FOR ALL TO authenticated USING (true) WITH CHECK (true);
 ALTER TABLE pi_member ENABLE ROW LEVEL SECURITY;
--- pi_member 는 개인정보: 모두 읽기 규칙은 쓰지 않습니다. 본인 또는 관리자만.
---   [가입형·본인만] CREATE POLICY pi_member_own ON pi_member FOR ALL TO authenticated USING (owner_id = auth.uid()) WITH CHECK (owner_id = auth.uid());  -- owner_id uuid DEFAULT auth.uid() 칸 필요
---   [관리자만]     관리자를 구별하는 방법(관리자 표 또는 JWT claim)을 정한 뒤 USING 에 그 조건을 씁니다
+CREATE POLICY pi_member_members ON pi_member FOR ALL TO authenticated USING (true) WITH CHECK (true);
 ALTER TABLE dues_payment ENABLE ROW LEVEL SECURITY;
---   [정해진 사람끼리] CREATE POLICY dues_payment_members ON dues_payment FOR ALL TO authenticated USING (true) WITH CHECK (true);
---   [가입형·자기 행] CREATE POLICY dues_payment_own ON dues_payment FOR ALL TO authenticated USING (owner_id = auth.uid()) WITH CHECK (owner_id = auth.uid());  -- owner_id uuid DEFAULT auth.uid() 칸 필요
---   [누구나 읽기만]   CREATE POLICY dues_payment_read ON dues_payment FOR SELECT TO anon, authenticated USING (true);
+CREATE POLICY dues_payment_members ON dues_payment FOR ALL TO authenticated USING (true) WITH CHECK (true);
 COMMIT;

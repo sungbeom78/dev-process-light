@@ -92,6 +92,10 @@ with _tempfile.TemporaryDirectory() as _d:
         _f.write("- 2026-10-11 10:00 · 확인 · 할 일 · </script><b>x</b> · 실패 · AI\n")
     (_root / "data").mkdir()
     _shutil.copy(KIT / "skills" / "data-light" / "examples" / "shop" / "data" / "model.light.json", _root / "data" / "model.light.json")
+    _mj = _json.loads((_root / "data" / "model.light.json").read_text(encoding="utf-8"))   # 누가 볼 수 있나(signup·access·outside)도 담는지
+    _mj.update({"db": "postgresql", "signup": "closed", "outside": ["log"]})
+    _mj["tables"][0]["access"] = "members"
+    (_root / "data" / "model.light.json").write_text(_json.dumps(_mj, ensure_ascii=False), encoding="utf-8")
     (_root / "dev-notes" / "log" / "할-일").mkdir(parents=True)
     (_root / "dev-notes" / "log" / "할-일" / "2026-10-11.md").write_text(
         "# 할 일 -- 2026-10-11\n\n## 목록\n- #1 10:00 [확인] 새로고침 -- 실패\n\n## 자세히\n### #1 10:00 [확인]\n- 오류: x\n", encoding="utf-8")
@@ -110,6 +114,9 @@ with _tempfile.TemporaryDirectory() as _d:
         if sorted(t["name"] for t in _dm.get("tables", [])) != sorted(
                 t["name"] for t in _json.loads((_root / "data" / "model.light.json").read_text(encoding="utf-8"))["tables"]):
             errors.append("light-portal: 데이터 설계(표 목록)를 담지 못함")
+        if (_dm.get("signup"), _dm.get("outside"), [t.get("access") for t in _dm.get("tables", [])][:2]) != (
+                "closed", ["log"], ["members", ""]):
+            errors.append("light-portal: 누가 볼 수 있나(signup·access·outside)를 담지 못함")
         if any("sample" in t or any("default" in c for c in t.get("columns", [])) for t in _dm.get("tables", [])):
             errors.append("light-portal: 데이터 설계의 샘플 값이 페이지에 들어감 (구조만 담는다)")
     if "dev-notes/portal.html" not in (_root / ".gitignore").read_text(encoding="utf-8"):

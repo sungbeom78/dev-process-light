@@ -2,6 +2,7 @@
   "format": "data-light/1",
   "project": "동아리 회비",
   "db": "postgresql",
+  "signup": "closed",
   "goals": [
     {
       "say": "활동 중인데 이번 달(2026-10) 회비를 안 낸 회원을 볼 수 있다 (미납 보기)",
@@ -36,6 +37,7 @@
       "name": "member",
       "label": "회원",
       "about": "동아리 회원 한 명",
+      "access": "members",
       "columns": [
         {
           "name": "member_id",
@@ -83,6 +85,7 @@
       "name": "pi_member",
       "label": "회원 개인정보",
       "about": "회원의 개인정보. 본 테이블과 1:1, 본 행을 지우면 같이 지워진다",
+      "access": "members",
       "columns": [
         {
           "name": "member_id",
@@ -127,6 +130,7 @@
       "name": "dues_payment",
       "label": "회비 납부",
       "about": "회원이 어느 달 회비를 언제 얼마 냈는지 한 번에 한 줄",
+      "access": "members",
       "columns": [
         {
           "name": "dues_payment_id",

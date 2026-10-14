@@ -73,7 +73,7 @@ AI는 설명서의 **따라 하기를 실제로 해 보고** 저장한 뒤, 바�
 | 전문판 | dev-process-framework | data-expert-framework |
 | 짝을 묶는 법 | 이 저장소가 `data-light` 를 **정해 둔 커밋 그대로** `kit/skills/data-light` 에 담아 함께 설치 ([`data-light.lock.json`](data-light.lock.json)) | 전문판은 서브모듈로 고정 |
 
-지금 짝 버전: **data-light 0.3.0** (data-expert-framework-light `e84d857`).
+지금 짝 버전: **data-light 0.4.0** (data-expert-framework-light `2ad0c15`).
 
 어떻게 이어지나요:
 - **질문은 한 번만** -- 누가 쓰나·로그인·올리는 곳·개인정보는 `NOW.md` 의 다섯 줄에 한 번 적고, 어느 스킬도 다시 묻지 않습니다.
@@ -82,6 +82,8 @@ AI는 설명서의 **따라 하기를 실제로 해 보고** 저장한 뒤, 바�
 - **이미 정한 것은 옮겨 적기** -- 카드의 완료 기준 중 데이터로 확인할 것은 data-light 의 성공 기준(`goals`)으로,
   "이번엔 안 한다"고 한 것은 `not_doing` 으로. 데이터 검사 장치(커밋할 때 `verify`)를 설치할지는 처음 한 번만 묻습니다.
 - **정본 하나** -- `data/model.light.json` 만 고치고, 그림(`data/out/erd.md`)·정의서·SQL 은 거기서 만듭니다. 코드는 정본의 이름 그대로.
+- **누가 볼 수 있나도 정본에** -- Supabase 면 "누가 쓰나" 답대로 `signup`(새 가입을 끄나)과 표마다 `access`(로그인한 사람 모두 · 만든 사람만 · 누구나 읽기만)를
+  정본에 적고, SQL 에 실제 행 접근 규칙이 만들어집니다. 정해진 사람끼리면 Supabase 의 새 가입 끄기를 확인한 뒤에 적용합니다.
 - **표를 바꾸면 그 표를 쓰는 기능을 모두 점검** -- `FEATURES.md` 의 "데이터 (표)" 절이 표 ↔ 기능을 잇습니다.
 - **확인과 저장** -- `light-check` 가 `datalight.py verify`(설계 검사·성공 기준·규칙 시험·생성물·데이터 보호를 한 번에)를 실제로 돌리고, `light-save` 가 `데이터:` 로 저장합니다.
   실제 데이터(`data/app.db`)·원본 엑셀·`.env` 는 저장하지 않습니다.

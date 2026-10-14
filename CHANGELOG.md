@@ -1,5 +1,41 @@
 # CHANGELOG
 
+## 0.10.0 -- 2026-10-15
+- 짝 스킬 data-light 를 **0.4.0** (data-expert-framework-light `2ad0c15`, 태그 `v0.4.0`) 으로. 0.9 가 원본에 요청한 U1~U8 이 반영되어
+  light 쪽 임시 지시를 걷어 냈다 (원본 기능은 이 저장소에서 다시 실행해 확인):
+  - **누가 볼 수 있나를 정본에**: `"signup": "open"|"closed"`, 표마다 `"access": "members"|"own"|"read"`, 칸 자료형 `"type": "owner"`
+    (Supabase 에서 `uuid NOT NULL DEFAULT auth.uid()`) → `build --db postgresql` 이 실제 규칙(`CREATE POLICY`)을 만든다.
+    `members` 는 `signup: closed` 일 때만 `check` 통과, `pi_` 표는 `read` 금지, `pi_` 의 `own` 은 짝 표의 주인을 따른다.
+    → `light-start` 4에 "누가 쓰나 → 정본" 표(정해진 사람끼리 · 아무나 가입 · 누구나 보는 목록). 6의 Supabase 는 "틀을 골라 손으로 실행" 대신
+    "정본대로 만든 SQL 을, 새 가입을 끈 것을 확인한 뒤에 적용"으로. `owner_id` 칸을 따로 더하던 SQL 우회와 `light-check` 의 코드 이름 예외를 지움.
+    `signup: closed` 는 약속일 뿐이라 Supabase 의 가입 설정은 사용자에게 확인받는다 (`light-check`). 손으로 쓴 틀이 남는 경우만 `data/supabase-policies.sql`
+  - **정본 밖에 둘 표** `"outside": ["log"]` -- 데이터가 든 표도 `verify` 의 데이터 보호 검사에서 뺄 수 있다 → "비어 있는 표만" 제한을 지우고,
+    `light-check` 의 "정본에서 빠졌습니다"와 `light-undo` 의 선택지에 "설계 밖에 두기"(데이터 유지)를 더함
+  - `import apply` 는 정본이 PostgreSQL 이면 백업 전에 멈춘다 (`--force-sqlite` 는 쓰지 않는다), Supabase 는 Table Editor 의 CSV 가져오기로.
+    `import schema` 가 개인정보로 보이는 칸을 `확인:` 줄로 알린다 → AI 가 혼자 표시하던 것을 "사용자에게 묻고 `personal`" 로
+  - 검사 장치: 한글 경로의 정본·`out/` 만 바뀐 저장도 검사, 설치된 예제(`.claude/skills`·`.agents/skills`)는 건너뜀, 다른 훅 뒤에 덧붙인
+    블록이 그 뒤 내용을 끊지 않음(괄호로 감싸고 `# data-light end`), git worktree·`core.hooksPath` 위치 표시 -- light 쪽 지시는 그대로
+  - `split --write` 는 `access` 를 `pi_` 표로 옮겨 주지 않는다 -- 나눈 뒤 `pi_` 표에도 `access` 를 적으라고 `light-start` 에 적음 (원본에 요청)
+- `light-portal` 데이터 메뉴가 누가 볼 수 있나(`signup`)·표마다 쓰는 사람(`access`, Supabase 인데 없으면 "규칙 없음")·정본 밖에 둔 표·`owner` 자료형을 보여 준다.
+  `check_kit.py` 가 이것을 페이지에 담는지 확인
+- 독립 검토 반영 (0.4.0 동작은 검토자가 Supabase 역할을 흉내 낸 PostgreSQL 에서 `own`·`read`·`members` 를 실제로 시험):
+  - **가입을 끈 사이트의 계정 만들기** -- 계정은 사용자가 Supabase 의 Authentication → Users → Add user(만들기·초대)로, 사이트에는 로그인 화면만
+    (가입 화면·`signUp` 없음), 사람을 더할 때도 가입을 켜지 않는다. 안내가 없으면 가입을 잠깐 켜는 길로 빠져 `members` 규칙이 모두에게 열린다
+  - 익명 로그인("Allow anonymous sign-ins")도 꺼졌는지 확인 -- 익명 사용자도 로그인한 사람으로 친다. 보안 점검의 익명 로그인 경고도 0 이어야
+  - "누구나 읽고 쓰기는 자기 것만·임원만" 은 `access` 하나로 못 적는다 -- 쓰는 쪽을 정본에, 읽기 규칙은 `data/supabase-policies.sql` 에 손으로.
+    `pi_` 표의 `access` 는 짝 표와 같게(짝 표가 `read` 면 `own` 또는 비워 두기), `read` 표는 사이트에서 쓸 수 없다
+  - Supabase 에 CSV 넣기: 자동 번호 칸은 넣을 수 없어 본 표 → 매겨진 번호 확인 → 그 번호로 `pi_` CSV 순서
+  - `light-undo`: 설계가 걸린 되돌리기는 `git revert --no-commit` 바로 다음에 `verify` -- 기록을 고친 뒤 막혀 `--abort` 하면 고친 기록도 지워진다
+  - 이미 있는 DB: 정본 밖에 둘 표는 초안의 `tables` 에서 빼고 `outside` 에 (둘 다 있으면 `check` 가 막는다)
+  - `light-resume`: 손으로 고른 틀을 정본으로 옮길 때 규칙 이름이 같아 대개 다시 실행할 것이 없음, 비어도 되는 `owner_id` 를 바꿀지 묻기,
+    `data/supabase-policies.sql` 에는 정본으로 못 옮긴 것만
+  - 기록 보기 페이지: `signup` 없이 `own`·`read` 만 있을 때 "아무 표도 못 씁니다" 라고 하던 것, `outside` 가 글자 하나씩 나뉘던 것, 알 수 없는 `access` 값 표시를 고침.
+    "쓰는 사람" 은 Supabase 정본에서만
+- `light-resume` "다시 설치한 뒤": 손으로 고른 Supabase 틀로 남긴 예전 결정을 정본의 `signup`·`access`·`owner` 로 옮기는 카드를 제안
+- README 에 "누가 볼 수 있나도 정본에"
+- 예시 `examples/club-dues` 를 0.4.0 으로 다시 수행 -- 임원 셋만: `signup: closed` + 세 표 `access: members`, `schema.sql` 에 실제 규칙 3개,
+  `split` 뒤 `pi_member` 에 `access` 를 직접 적는 단계까지
+
 ## 0.9.0 -- 2026-10-15
 - 짝 스킬 data-light 를 **0.3.0** (data-expert-framework-light `e84d857`, 태그 `v0.3.0`) 으로. 0.8 이 원본에 요청한 A1~C3 가 반영되어
   light 쪽 임시 지시를 걷어 냈다:

@@ -1,18 +1,18 @@
 {
   "about": "kit/skills/data-light 는 아래 커밋의 skills/data-light 와 LICENSE 를 바이트 그대로 담은 사본이다. 고치지 않는다 -- 원본(data-expert-framework-light)에서 고치고 scripts/update_data_light.py 로만 바꾼다.",
   "repo": "https://github.com/sungbeom78/data-expert-framework-light",
-  "commit": "e84d8575e5297b6bb6f896e2e9305d2ad62c475e",
-  "version": "0.3.0",
+  "commit": "2ad0c15abb35fbbbf47791dccd3c0467c3b60ae4",
+  "version": "0.4.0",
   "files": {
     "LICENSE": "1743f5d2438e89ddce3f4c25fdff39d9d27b94821bd367274135b87ae69b767e",
-    "SKILL.md": "f56fb852ce6219dd7472995b9141e6a55a0f5ad4f3375ef9dbdfcf9b4e4791cb",
+    "SKILL.md": "cb654c4f51af352e4f30ef8ca6a5871f669d7c99c3380dabc710625e033219b0",
     "examples/shop/README.md": "b61a6b85d7b8d349ecc2fa1f5bd3f218acc93e71cd3461bfaece418c9685fb54",
     "examples/shop/data/model.light.json": "b8164d1e762b38a8a758ef5c2b95f53bf8696b7ee2798c0a65549dd25fae7d00",
     "examples/shop/data/out/erd.md": "3900d422b2eb52f45d56640c71a20bdb07be943afdb953bc67851473cd99d458",
     "examples/shop/data/out/schema.sql": "287b9ecaf340d93d0f31b0a08fc1ff5c19c8b1c16d6f6d408280ce30f11dc050",
     "examples/shop/data/out/spec.md": "d602af1488500c70120fdee2f6ee208c5d9a51a7eda12b7db49a7f03b6925cac",
-    "references/format.md": "d6ba18eeb6c9559e3d67a6656e4864c897eac002a33c9084b05b99bb70de4986",
-    "references/with-dev-process-light.md": "4690a8212ff5a3d663bb21073af930452948d2e67576103f3bca2a239767e39c",
-    "scripts/datalight.py": "2d82358ae886ac8b507a3d1d024e525c6f5ec34788f09547138d408f8d0958f3"
+    "references/format.md": "721f89efa2bce4c52b432c55a113aec07e52eab5cc34a047ed481aadc1d0ecb1",
+    "references/with-dev-process-light.md": "37ce9e2b68a488cbf25c29685fd5ee4c4eab0d8563611f595f9f50ce80614445",
+    "scripts/datalight.py": "503193be09e49df6c3759695206acca4e97efac9ff2936b1b7ed2f76d2954887"
   }
 }
