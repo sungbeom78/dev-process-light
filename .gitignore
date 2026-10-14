@@ -1,0 +1,3 @@
+# 파이썬이 저절로 만드는 파일 (kit 에 들어가면 check_kit 가 막는다)
+__pycache__/
+*.pyc
