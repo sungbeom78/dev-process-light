@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.8.1 -- 2026-10-14
+- 짝 스킬 data-light 를 **0.2.1** (data-expert-framework-light `828c5ba`, 태그 `v0.2.1`) 로. 0.2.1 은 0.8.0 이 담은 `cbbd258`
+  (Windows·Python 3.9 수정)에 릴리스 이름을 붙인 것이라 `kit/skills/data-light` 의 파일은 그대로이고 잠금 파일의 커밋·버전만 바뀐다.
+  원본은 "0.2.0(태그 `v0.2.0` = `a11aca3`)은 Windows·Python 3.9 에서 일부 기능이 실패하니 0.2.1 을 쓰라"고 안내한다 -- dev-process-light 는
+  0.8.0 부터 이미 고친 코드를 담아 왔으므로 설치된 프로젝트는 할 일이 없다 (다시 설치하면 버전 표시만 바뀐다)
+
 ## 0.8.0 -- 2026-10-14
 - **짝 스킬 `data-light`** ([data-expert-framework-light](https://github.com/sungbeom78/data-expert-framework-light) 0.2.0, `cbbd258`) --
   dev-process-framework ↔ data-expert-framework 처럼 가벼운 판도 짝을 맞춘다. 저장할 데이터가 생기면 데이터부터 설계하고 돌아온다
