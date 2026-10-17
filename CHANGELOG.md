@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.12.4 -- 2026-10-18
+- 짝 스킬 data-light 를 **0.6.4** (data-expert-framework-light `4c62e1f`) 으로 -- `view` 관계선 종류(식별·필수·선택·코드) 표기와 종류별 켜고 끄기, 보이는 선만으로 자동 배치. 정본 형식·명령은 그대로
+
 ## 0.12.3 -- 2026-10-18
 - 짝 스킬 data-light 를 **0.6.3** (data-expert-framework-light `3c7a9ec`) 으로 -- `view` 의 모든 보기에 표시 상한, 되돌리기 경쟁 수정. 정본 형식·명령은 그대로
 
