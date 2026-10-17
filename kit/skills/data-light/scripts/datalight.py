@@ -13,8 +13,8 @@ Commands
   try     <model>                         run the schema + sample rows in SQLite and probe the rules
   import plan  <file> --table NAME [--label 한글] [--sheet S] [--out plan.json]
   import apply <plan.json> --model <model> --db data/app.db --approval "<사용자 답 그대로>"
-  upgrade <model> [--out model.json] [--schema app] [--pi-schema pi]
-                                          convert to the full framework's model.json
+  upgrade <model> [--out model.json] [--schema app] [--pi-schema pi] [--facts facts.json]
+                                          convert to the full framework's model.json (+ question ledger for product)
   verify  <model> [--db app.db|--no-db] [--mutate]
                                           one pass/fail gate: check + goals + rules + out/ fresh + DB safety
   hook install [--repo .] [--no-ci] [--append]
@@ -44,10 +44,16 @@ import sys
 from pathlib import Path
 
 FORMAT = "data-light/1"
-__version__ = "0.4.0"
+__version__ = "0.5.0"
 NAME = re.compile(r"^[a-z][a-z0-9_]{0,62}$")
 TYPES = ("id", "ref", "text", "long_text", "int", "number", "money", "bool", "date", "datetime", "owner")
 ACCESS = ("members", "own", "read")
+WIDE = {"read": 3, "members": 2, "own": 1}          # who may see: read (anyone) > members (signed in) > own (my rows)
+
+
+def access_list(t: dict) -> list:
+    a = t.get("access")
+    return [] if a is None else ([a] if isinstance(a, str) else list(a))
 RESERVED = {
     "all", "and", "any", "as", "asc", "between", "by", "case", "check", "column", "constraint", "create", "cross",
     "current_date", "current_time", "current_timestamp", "default", "delete", "desc", "distinct", "drop", "else", "end",
@@ -57,6 +63,10 @@ RESERVED = {
     "unique", "update", "user", "using", "values", "view", "when", "where", "with",
 }
 ON_DELETE = {"keep": "RESTRICT", "delete": "CASCADE", "clear": "SET NULL"}
+# what this data work hands over (subset of the full framework's data.product_type) -- asked, never guessed
+PRODUCT_KINDS = {"design": ("설계까지", "modeling_files"), "load": ("파일·엑셀 넣기", "ingest_pipeline"),
+                 "manage": ("데이터 관리 (찾고·고치기)", "data_management"), "analyze": ("알고 싶은 것 보기 (분석)", "analytics_bi")}
+UNDETERMINED = "유형 미정"
 PERSONAL_KINDS = ("name", "phone", "email", "address", "birth", "id_number", "account", "health", "photo", "location", "other")
 
 
@@ -234,22 +244,29 @@ def check(model: dict) -> tuple[list[str], list[str]]:
             err.append(f"{where}: owner 칸은 표마다 하나만")
         acc = t.get("access")
         if acc is not None:
-            if acc not in ACCESS:
-                err.append(f"{where}: access 는 {', '.join(ACCESS)} 중 하나 (members=정해진 사람끼리, own=자기 행만, read=누구나 읽기만)")
+            al = access_list(t) if isinstance(acc, (str, list)) else [None]
+            base_t = next((x for x in tb if x.get("name") == tn[3:]), None) if tn.startswith("pi_") else t
+            if not al or len(al) > 2 or len(set(al)) != len(al) or any(a not in ACCESS for a in al):
+                err.append(f"{where}: access 는 {', '.join(ACCESS)} 중 하나, 또는 읽기·쓰기 두 개의 목록 (예: [\"read\", \"own\"] "
+                           "= 누구나 읽고 쓰기는 자기 것만)")
             elif model.get("db", "sqlite") != "postgresql":
                 warn.append(f"{where}: access 는 PostgreSQL(Supabase) 에서만 쓰입니다 -- 지금 db 는 {model.get('db', 'sqlite')}")
-            elif acc == "members" and model.get("signup") != "closed":
-                err.append(f"{where}: access members(로그인한 사람 모두)는 새 가입을 끈 사이트에서만 안전합니다 -- "
-                           "Supabase 에서 새 가입을 끄고 정본에 \"signup\": \"closed\" 를 적거나, own 을 쓰세요")
-            elif acc == "read" and tn.startswith("pi_"):
-                err.append(f"{where}: 개인정보 표는 누구나 읽기(read)로 열 수 없습니다")
-            elif acc == "own":
-                base_t = next((x for x in tb if x.get("name") == tn[3:]), None) if tn.startswith("pi_") else t
-                if not base_t or not any(c.get("type") == "owner" for c in base_t.get("columns", [])):
+            else:
+                if "members" in al and model.get("signup") != "closed":
+                    err.append(f"{where}: access members(로그인한 사람 모두)는 새 가입을 끈 사이트에서만 안전합니다 -- "
+                               "Supabase 에서 새 가입을 끄고 정본에 \"signup\": \"closed\" 를 적거나, own 을 쓰세요")
+                if "read" in al and tn.startswith("pi_"):
+                    err.append(f"{where}: 개인정보 표는 누구나 읽기(read)로 열 수 없습니다")
+                if "own" in al and (not base_t or not any(c.get("type") == "owner" for c in base_t.get("columns", []))):
                     err.append(f"{where}: access own 은 " + ("짝 테이블에" if tn.startswith("pi_") else "이 표에")
                                + " owner 칸이 있어야 합니다 (예: {\"name\": \"owner_id\", \"label\": \"만든 사람\", \"type\": \"owner\"})")
         elif owners and model.get("db", "sqlite") == "postgresql":
             warn.append(f"{where}: owner 칸이 있는데 access 가 없습니다 -- 자기 행만 보게 하려면 \"access\": \"own\"")
+        if tn.startswith("pi_") and model.get("db", "sqlite") == "postgresql" and t.get("access") is None:
+            bt = next((x for x in tb if x.get("name") == tn[3:]), None)
+            if bt and bt.get("access") is not None:
+                warn.append(f"{where}: 짝 테이블 {tn[3:]} 에는 access 가 있는데 이 개인정보 표에는 없습니다 -- "
+                            "Supabase 에서 아무도 읽을 수 없습니다 (own 또는 members 를 적거나, 일부러 막은 것이면 그대로)")
         if tn.startswith("pi_"):
             base = tn[3:]
             if base not in names:
@@ -272,6 +289,11 @@ def check(model: dict) -> tuple[list[str], list[str]]:
             bad = [k for k in row if k not in cn_seen]
             if bad:
                 err.append(f"{where}: 샘플 {i}번째 행에 없는 칸 {bad}")
+    # what we hand over (product): asked in the user's words, never guessed
+    err += product_errors(model)
+    if model.get("product") is None:
+        warn.append(f"만드는 것(product)을 정하지 않았습니다 ({UNDETERMINED}) -- 사용자에게 '설계까지 / 파일 넣기 / 데이터 관리 / 분석' 중 "
+                    "무엇을 원하는지 묻고 그 말을 said 에 그대로 적으세요. 정하기 전에는 verify 가 통과하지 않습니다")
     # success criteria (harness layer 1): goals = questions the data must answer, not_doing = scope fence
     goals = model.get("goals")
     if goals is None:
@@ -327,6 +349,39 @@ def check(model: dict) -> tuple[list[str], list[str]]:
     return err, warn
 
 
+def product_errors(model: dict) -> list[str]:
+    """product = {"kinds": [design|load|manage|analyze ...], "main": <one of kinds, if more than one>, "said": "<user's words>"}"""
+    p = model.get("product")
+    if p is None:
+        return []
+    if not isinstance(p, dict):
+        return ["product 는 {\"kinds\": [...], \"main\": ..., \"said\": \"사용자 말 그대로\"} 모양입니다"]
+    err = []
+    kinds = p.get("kinds")
+    if not isinstance(kinds, list) or not kinds or not all(isinstance(k, str) for k in kinds) \
+            or any(k not in PRODUCT_KINDS for k in kinds) or len(set(kinds)) != len(kinds):
+        err.append(f"product.kinds 는 {list(PRODUCT_KINDS)} 중에서 하나 이상 (겹치지 않게)")
+        kinds = []
+    main = p.get("main")
+    if main is not None and not isinstance(main, str):
+        err.append("product.main 은 kinds 중 하나(글자)입니다")
+    elif len(kinds) > 1 and main not in kinds:
+        err.append("product.main -- 여러 개면 그중 주 목적 하나를 적습니다 (사용자에게 묻습니다)")
+    elif main is not None and kinds and main not in kinds:
+        err.append("product.main 은 kinds 중 하나입니다")
+    for key in ("said", "main_said"):
+        v = p.get(key)
+        if (key == "said" or v is not None) and not (isinstance(v, str) and v.strip()):
+            err.append(f"product.{key} -- 사용자가 한 말을 그대로 적습니다 (글자, Claude 가 짐작한 것은 적지 않습니다)")
+    return err
+
+
+def product_main(model: dict) -> str | None:
+    p = model.get("product") or {}
+    kinds = p.get("kinds") or []
+    return p.get("main") or (kinds[0] if len(kinds) == 1 else None)
+
+
 # ----------------------------------------------------------------- split
 def split(model: dict) -> list[str]:
     """move personal columns of each table into pi_<table> (1:1, deleted together)"""
@@ -350,6 +405,13 @@ def split(model: dict) -> list[str]:
                                "type": "ref", "ref": t["name"], "key": True, "on_delete": "delete"}]}
             model["tables"].insert(model["tables"].index(t) + 1, pt)
             tb[pn] = pt
+        if pt.get("access") is None and t.get("access") is not None:
+            # personal data follows its table, but never opens wider than "own"/"members": read becomes own (if owner) or nothing
+            acc = [a for a in access_list(t) if a != "read"]
+            if not acc and "read" in access_list(t) and any(c.get("type") == "owner" for c in t["columns"]):
+                acc = ["own"]
+            if acc:
+                pt["access"] = min(acc, key=lambda a: WIDE[a])
         for c in pcols:
             t["columns"].remove(c)
             pt["columns"].append(c)
@@ -454,24 +516,42 @@ def ddl(model: dict, db: str | None = None, only: set | None = None) -> str:
     return "\n".join(out) + "\n"
 
 
+def _who(model: dict, t: dict, kind: str) -> tuple[str, str]:
+    """(roles, condition) for one access kind"""
+    if kind == "read":
+        return "anon, authenticated", "true"
+    if kind == "members":
+        return "authenticated", "true"
+    tn = t["name"]
+    own = next((c["name"] for c in t["columns"] if c["type"] == "owner"), None)
+    if own:
+        return "authenticated", f"{own} = auth.uid()"
+    base = tables(model)[tn[3:]]                # pi_ table: owner lives on the paired table
+    bo = next(c["name"] for c in base["columns"] if c["type"] == "owner")
+    k = id_column(model, base["name"])
+    return "authenticated", f"EXISTS (SELECT 1 FROM {base['name']} b WHERE b.{k} = {tn}.{k} AND b.{bo} = auth.uid())"
+
+
 def _policies(model: dict, t: dict) -> list[str]:
-    """real policies from the model's "access" (members / own / read)"""
-    tn, acc = t["name"], t.get("access")
-    if acc == "members":
-        return [f"CREATE POLICY {tn}_members ON {tn} FOR ALL TO authenticated USING (true) WITH CHECK (true);"]
-    if acc == "read":
-        return [f"CREATE POLICY {tn}_read ON {tn} FOR SELECT TO anon, authenticated USING (true);"]
-    if acc == "own":
-        own = next((c["name"] for c in t["columns"] if c["type"] == "owner"), None)
-        if own:
-            cond = f"{own} = auth.uid()"
-        else:                                   # pi_ table: owner lives on the paired table
-            base = tables(model)[tn[3:]]
-            bo = next(c["name"] for c in base["columns"] if c["type"] == "owner")
-            k = id_column(model, base["name"])
-            cond = f"EXISTS (SELECT 1 FROM {base['name']} b WHERE b.{k} = {tn}.{k} AND b.{bo} = auth.uid())"
-        return [f"CREATE POLICY {tn}_own ON {tn} FOR ALL TO authenticated USING ({cond}) WITH CHECK ({cond});"]
-    return []
+    """real policies from the model's "access": one kind (read = select only, members/own = everything),
+    or two kinds = the wider one reads, the narrower one writes (e.g. ["read", "own"]: a board)"""
+    tn, al = t["name"], access_list(t)
+    if not al:
+        return []
+    if len(al) == 1:
+        kind = al[0]
+        roles, cond = _who(model, t, kind)
+        if kind == "read":
+            return [f"CREATE POLICY {tn}_read ON {tn} FOR SELECT TO {roles} USING ({cond});"]
+        return [f"CREATE POLICY {tn}_{kind} ON {tn} FOR ALL TO {roles} USING ({cond}) WITH CHECK ({cond});"]
+    reader, writer = sorted(al, key=lambda a: -WIDE[a])
+    rr, rc = _who(model, t, reader)
+    wr, wc = _who(model, t, writer)
+    return [f"-- {tn}: 읽기 = {reader}, 쓰기 = {writer}",
+            f"CREATE POLICY {tn}_read_{reader} ON {tn} FOR SELECT TO {rr} USING ({rc});",
+            f"CREATE POLICY {tn}_add_{writer} ON {tn} FOR INSERT TO {wr} WITH CHECK ({wc});",
+            f"CREATE POLICY {tn}_edit_{writer} ON {tn} FOR UPDATE TO {wr} USING ({wc}) WITH CHECK ({wc});",
+            f"CREATE POLICY {tn}_delete_{writer} ON {tn} FOR DELETE TO {wr} USING ({wc});"]
 
 
 def rls_sql(model: dict, only=None) -> list[str]:
@@ -486,7 +566,9 @@ def rls_sql(model: dict, only=None) -> list[str]:
            "-- 사이트 코드에는 공개용 키만. service_role · sb_secret_ 키는 절대 넣지 않습니다. 적용 뒤 Supabase 의 Security Advisor 를 확인하세요.",
            "-- (일반 PostgreSQL 에서는 표 주인 계정에는 RLS 가 적용되지 않아 동작이 바뀌지 않습니다.)"]
     if model.get("signup") == "closed":
-        out.append("-- 이 사이트는 새 가입을 끈 것으로 정했습니다(signup: closed). Supabase 의 가입 설정이 꺼져 있는지 확인하세요.")
+        out += ["-- 이 사이트는 새 가입을 끈 것으로 정했습니다(signup: closed). Supabase 의 Authentication 설정에서",
+                "--   · 새 가입(Allow new users to sign up)을 끄고, · 익명 로그인(Allow anonymous sign-ins)도 끕니다 (익명 사용자도 로그인한 사람으로 칩니다).",
+                "--   · 계정은 Authentication → Users → Add user 로 만들어 줍니다. 사이트에는 가입 화면을 두지 않습니다."]
     for t in ordered(model):
         tn = t["name"]
         if only is not None and tn not in only:
@@ -563,6 +645,12 @@ SPEC_HEAD = ("테이블", "테이블 이름표", "순번", "칸", "칸 이름표
 
 def spec_md(model: dict) -> str:
     out = [f"# {model.get('project', '')} -- 테이블 정의서", "", f"DB: {model.get('db', 'sqlite')}", ""]
+    p = model.get("product")
+    if isinstance(p, dict) and p.get("kinds"):
+        main = product_main(model)
+        rest = [PRODUCT_KINDS[k][0] for k in p["kinds"] if k != main and k in PRODUCT_KINDS]
+        out += [f"만드는 것: **{PRODUCT_KINDS.get(main, (main,))[0]}**" + (f" (함께: {', '.join(rest)})" if rest else "")
+                + f" -- 사용자: \"{p.get('said', '')}\"", ""]
     if model.get("goals") or model.get("not_doing"):
         out += ["## 성공 기준 -- 이 데이터로 할 수 있어야 하는 것", "",
                 "`datalight.py verify` 가 아래 확인 쿼리를 샘플 데이터로 실제로 돌려 봅니다.", ""]
@@ -676,6 +764,8 @@ def try_sqlite(model: dict, ddl_text: str | None = None) -> tuple[bool, list[str
 
     def insert(t, row):
         cols = list(row)
+        if not cols:                                    # nothing required and no sample: let defaults fill the row
+            return con.execute(f"INSERT INTO {t['name']} DEFAULT VALUES").lastrowid
         cur = con.execute(f"INSERT INTO {t['name']} ({', '.join(cols)}) VALUES ({', '.join('?' * len(cols))})",
                           [int(v) if isinstance(v, bool) else v for v in row.values()])
         return cur.lastrowid
@@ -892,6 +982,18 @@ def verify(model_path, db_path=None, use_db=True, mutate=False) -> tuple[bool, l
     if errs:
         return False, lines + ["결과: 설계 검사(check) 실패 -- 나머지 검사는 건너뜁니다"]
     lines.append("OK: 설계 검사")
+    if m.get("product") is None:
+        ok = False
+        lines.append(f"FAIL: 만드는 것(product)이 {UNDETERMINED} -- 무엇을 만들어 넘기는지 사용자에게 묻고 정본에 적습니다 "
+                     "(설계까지 · 파일 넣기 · 데이터 관리 · 분석)")
+    else:
+        kinds = m["product"]["kinds"]
+        lines.append("OK: 만드는 것 -- " + ", ".join(PRODUCT_KINDS[k][0] for k in kinds) + f" (주: {PRODUCT_KINDS[product_main(m)][0]})")
+        if "analyze" in kinds and not m.get("goals"):
+            ok = False
+            lines.append("FAIL: 분석이 목적인데 성공 기준(goals)이 없습니다 -- 알고 싶은 것을 확인 쿼리로 적어야 실제로 나오는지 볼 수 있습니다")
+        if "manage" in kinds:
+            lines.append("참고: 데이터 관리(찾고·고치기) 화면은 verify 가 보지 않습니다 -- 화면에서 찾고 고쳐 보는 것은 사용자와 함께 확인")
     tok, tlines = try_sqlite(m)
     ok &= tok
     lines += [l for l in tlines if l.startswith("FAIL") or "성공 기준" in l]
@@ -929,11 +1031,12 @@ HOOK = HOOK_MARK + """ (datalight.py hook install)
 # (괄호 안에서만 끝내므로 이 아래에 다른 훅 내용이 있어도 그대로 돕니다)
 (
   models=$(git -c core.quotepath=false diff --cached --name-only --diff-filter=ACMR | while IFS= read -r f; do
-    case "$f" in .claude/skills/*|.agents/skills/*) continue ;; esac   # 설치된 스킬의 예제는 검사하지 않음
+    # 패턴 앞의 "(" 는 꼭 둔다 -- macOS 의 /bin/sh(bash 3.2)는 $( ) 안의 case 패턴 ")" 를 치환의 끝으로 읽는다
+    case "$f" in (.claude/skills/*|.agents/skills/*) continue ;; esac   # 설치된 스킬의 예제는 검사하지 않음
     case "$f" in
-      *model.light.json) printf '%s\\n' "$f" ;;
-      */out/*) d=${f%/out/*}; [ -f "$d/model.light.json" ] && printf '%s\\n' "$d/model.light.json" ;;
-      out/*) [ -f model.light.json ] && printf '%s\\n' model.light.json ;;
+      (*model.light.json) printf '%s\\n' "$f" ;;
+      (*/out/*) d=${f%/out/*}; [ -f "$d/model.light.json" ] && printf '%s\\n' "$d/model.light.json" ;;
+      (out/*) [ -f model.light.json ] && printf '%s\\n' model.light.json ;;
     esac
   done | sort -u)
   [ -z "$models" ] && exit 0
@@ -989,6 +1092,24 @@ def _hooks_dir(repo: Path) -> tuple[Path, str]:
 
 def _hook_label(repo: Path, shown: str) -> str:
     return f"{shown}/pre-commit" + (" (git 설정 core.hooksPath)" if _git(repo, "config", "--get", "core.hooksPath") else "")
+
+
+def _hook_syntax_error(hook: Path) -> str:
+    """'' if the system sh can parse the hook (or no sh to ask), else the error text"""
+    import shutil
+    import subprocess
+    sh = shutil.which("sh")
+    if not sh:
+        return ""
+    try:   # file name + cwd, never a Windows path: WSL's bash turns C:\\Users\\... into C:Users...
+        r = subprocess.run([sh, "-n", hook.name], cwd=str(hook.parent), capture_output=True, text=True,
+                           encoding="utf-8", errors="replace", timeout=20)
+    except (OSError, subprocess.SubprocessError):
+        return ""
+    err = r.stderr.strip()
+    if r.returncode == 0 or "syntax" not in err.lower():   # only a real parse error counts; "cannot run sh" is not one
+        return ""
+    return (err.splitlines() or ["sh -n 실패"])[-1]
 
 
 def _settings(repo: Path) -> dict:
@@ -1063,6 +1184,18 @@ def hook_install(repo=".", ci=None, append=False) -> list[str]:
         hook.chmod(0o755)
     except OSError:
         pass
+    bad = _hook_syntax_error(hook)
+    if bad:                                    # never leave a hook that stops every commit
+        text = hook.read_text(encoding="utf-8", errors="replace")
+        i = text.find(HOOK_MARK)
+        j = text.find(HOOK_END, i)
+        rest = text[:i] + (text[j + len(HOOK_END):].lstrip("\n") if j >= 0 else "")
+        if rest.strip() in ("", "#!/bin/sh"):
+            hook.unlink()
+        else:
+            _write(hook, rest)
+        done.append(f"주의: 이 컴퓨터의 sh 가 훅을 읽지 못해 설치하지 않았습니다 ({bad}) -- 커밋은 막지 않습니다. "
+                    "verify 는 손으로 돌리고, data-expert-framework-light 저장소에 알려 주세요")
     wf = repo / ".github" / "workflows" / "data-light.yml"
     if not ci:
         done.append("CI 파일은 만들지 않음 (--no-ci 를 기억해 두었습니다. 다시 켜려면 `hook install --ci`)")
@@ -1149,13 +1282,21 @@ def _slug(h: str) -> str | None:
 def _project_path(path: str) -> tuple[str, bool]:
     """path relative to the project (cwd), so plans and logs never carry the user's own folder names.
     returns (path_to_store, inside_project)"""
-    ab = os.path.abspath(path)
+    # realpath on both sides: macOS temp folders are /var -> /private/var symlinks and Windows may give
+    # 8.3 short names (RUNNER~1) for one side only -- without this the path looked "outside" and lost its folder
+    ab = Path(os.path.abspath(path))
+    home = os.path.normcase(os.path.realpath(os.getcwd()))
+    # the nearest folder of the path (as written) that IS the project folder once resolved -- so a link folder inside the
+    # project keeps its name, and /var vs /private/var (macOS) or RUNNER~1 vs runneradmin (Windows) still match
+    for anc in ab.parents:
+        if os.path.normcase(os.path.realpath(anc)) == home:
+            return ab.relative_to(anc).as_posix(), True
     try:
-        rel = os.path.relpath(ab, os.getcwd())
+        rel = os.path.relpath(os.path.realpath(ab), home)
     except ValueError:                         # another drive on Windows
-        return Path(ab).name, False
+        return ab.name, False
     if rel.startswith(".."):
-        return Path(ab).name, False
+        return ab.name, False
     return Path(rel).as_posix(), True
 
 
@@ -1427,6 +1568,22 @@ def schema_to_model(db_path) -> tuple[dict, list[str]]:
 CLASS_TOKENS = {"id", "no", "nm", "cd", "yn", "at", "dt", "amt", "cnt", "val"}
 
 
+def upgrade_facts(model: dict) -> dict | None:
+    """product → the full framework's question ledger (data/facts.json): data.product_type / data.product_primary, source user"""
+    p = model.get("product")
+    if not isinstance(p, dict) or product_errors(model):
+        return None
+    now = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    said = str(p["said"]).strip()
+    base = {"source": "user", "quote": said, "asked_by": "data", "stage": "data_plan", "at": now}
+    facts = {"data.product_type": dict(base, version=1, value=[PRODUCT_KINDS[k][1] for k in p["kinds"]])}
+    if len(p["kinds"]) > 1 and str(p.get("main_said") or "").strip():
+        # 주 목적은 사용자가 따로 말했을 때만 옮긴다 -- 없으면 전문판에서 data.product_primary 를 묻는다
+        facts["data.product_primary"] = dict(base, version=1, value=PRODUCT_KINDS[product_main(model)][1],
+                                             quote=str(p["main_said"]).strip(), derived_from=["data.product_type@1"])
+    return {"facts_version": "1", "facts": facts, "history": []}
+
+
 def upgrade(model: dict, schema: str = "app", pi_schema: str | None = None) -> dict:
     """light model → data-expert-framework model.json (passes its check_dictionary / export_all)"""
     errs, _ = check(model)
@@ -1555,6 +1712,7 @@ def main(argv=None) -> int:
     q = hsp.add_parser("status"); q.add_argument("--repo", default=".")
     p = sp.add_parser("upgrade"); p.add_argument("model"); p.add_argument("--out", default="model.json")
     p.add_argument("--schema", default="app"); p.add_argument("--pi-schema")
+    p.add_argument("--facts", help="전문판 질문 대장(data/facts.json)으로 만드는 것(product)도 옮긴다")
     a = ap.parse_args(argv)
 
     if a.cmd == "check":
@@ -1633,10 +1791,20 @@ def main(argv=None) -> int:
         print("이제 정본을 고쳐 커밋하면 verify 가 자동으로 돕니다. 시험: 정본에 일부러 오류를 넣고 커밋해 보세요")
         return 0
     if a.cmd == "upgrade":
+        if a.facts and os.path.exists(a.facts):
+            print(f"{a.facts} 가 이미 있습니다 -- 덮어쓰지 않습니다 (전문판의 facts.py answer 로 넣으세요). 아무것도 만들지 않았습니다")
+            return 1
         full = upgrade(load(a.model), a.schema, a.pi_schema)
         save(full, a.out)
         print(f"전문판 정본 → {a.out}: 테이블 {len(full['tables'])}개 · 단어 {len(full['words'])}개 "
               "(단어의 한글명·약어는 전문판 공통 사전 대조에서 정리)")
+        if a.facts:
+            fx = upgrade_facts(load(a.model))
+            if fx is None:
+                print(f"만드는 것(product)이 {UNDETERMINED} 라 질문 대장은 만들지 않았습니다 -- 전문판에서 data.product_type 을 묻습니다")
+            else:
+                save(fx, a.facts)
+                print(f"질문 대장 → {a.facts}: " + ", ".join(f"{k}@1" for k in fx["facts"]))
         return 0
     return 2
 

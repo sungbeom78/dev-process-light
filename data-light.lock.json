@@ -1,18 +1,18 @@
 {
   "about": "kit/skills/data-light 는 아래 커밋의 skills/data-light 와 LICENSE 를 바이트 그대로 담은 사본이다. 고치지 않는다 -- 원본(data-expert-framework-light)에서 고치고 scripts/update_data_light.py 로만 바꾼다.",
   "repo": "https://github.com/sungbeom78/data-expert-framework-light",
-  "commit": "2ad0c15abb35fbbbf47791dccd3c0467c3b60ae4",
-  "version": "0.4.0",
+  "commit": "c77bb7cc49f415834681522f5e6682c37304cb50",
+  "version": "0.5.0",
   "files": {
     "LICENSE": "1743f5d2438e89ddce3f4c25fdff39d9d27b94821bd367274135b87ae69b767e",
-    "SKILL.md": "cb654c4f51af352e4f30ef8ca6a5871f669d7c99c3380dabc710625e033219b0",
+    "SKILL.md": "70bc2febac69af5d3607ef4d490f2aac10a8e80c88bec1074d4808c534083a41",
     "examples/shop/README.md": "b61a6b85d7b8d349ecc2fa1f5bd3f218acc93e71cd3461bfaece418c9685fb54",
-    "examples/shop/data/model.light.json": "b8164d1e762b38a8a758ef5c2b95f53bf8696b7ee2798c0a65549dd25fae7d00",
+    "examples/shop/data/model.light.json": "fb38a34f94edff40398177086d7d8e4102bac06369534159e9346afdeb7e8dad",
     "examples/shop/data/out/erd.md": "3900d422b2eb52f45d56640c71a20bdb07be943afdb953bc67851473cd99d458",
     "examples/shop/data/out/schema.sql": "287b9ecaf340d93d0f31b0a08fc1ff5c19c8b1c16d6f6d408280ce30f11dc050",
-    "examples/shop/data/out/spec.md": "d602af1488500c70120fdee2f6ee208c5d9a51a7eda12b7db49a7f03b6925cac",
-    "references/format.md": "721f89efa2bce4c52b432c55a113aec07e52eab5cc34a047ed481aadc1d0ecb1",
-    "references/with-dev-process-light.md": "37ce9e2b68a488cbf25c29685fd5ee4c4eab0d8563611f595f9f50ce80614445",
-    "scripts/datalight.py": "503193be09e49df6c3759695206acca4e97efac9ff2936b1b7ed2f76d2954887"
+    "examples/shop/data/out/spec.md": "8c0aa57bb62b553e8b827f2ed8444e991ebf9afc1999d43203f37081d7542526",
+    "references/format.md": "a5061082f04ae3c62caeca7f9a20cde1e66c6d38b8861306e040aec4919319e1",
+    "references/with-dev-process-light.md": "79bb1f62bfaccfcd9545c5786340c246d9dd023b6e1f88b2988160899ac72364",
+    "scripts/datalight.py": "16efbd2d9a7b304b1b7e75c994d9cf6acd2d450b411e39d74006c2cce56fe368"
   }
 }

@@ -54,6 +54,20 @@ def _rel(target: Path, out: Path) -> str:
         return target.resolve().as_uri()
 
 
+def _access(v):
+    """표의 access: 한 값("members") 또는 읽기·쓰기 두 개 목록(["read", "own"], data-light 0.4.1)."""
+    if isinstance(v, list):
+        return [str(x) for x in v if isinstance(x, str)]
+    return str(v) if v else ""
+
+
+def _product(v) -> dict | None:
+    if not isinstance(v, dict):
+        return None
+    kinds = [str(x) for x in v.get("kinds") or [] if isinstance(x, str)] if isinstance(v.get("kinds"), list) else []
+    return {"kinds": kinds, "main": str(v.get("main") or ""), "said": str(v.get("said") or ""), "main_said": str(v.get("main_said") or "")}
+
+
 def data_summary(root: Path, out: Path) -> dict | None:
     """data-light 정본의 구조만 (샘플 행·기본값 밖의 값은 담지 않는다 -- 페이지는 구조를 보여 주는 곳)."""
     p = root / MODEL
@@ -67,11 +81,12 @@ def data_summary(root: Path, out: Path) -> dict | None:
             uniq = [[str(x) for x in u] for u in (t.get("unique") or []) if isinstance(u, list)]   # 두 칸 이상 묶은 중복 금지
             tables.append({"name": t.get("name", ""), "label": t.get("label", ""), "about": t.get("about", ""),
                            "timestamps": t.get("timestamps", True) is not False, "columns": cols, "unique": uniq,
-                           "access": str(t["access"]) if t.get("access") else ""})     # 누가 이 표를 쓰나 (Supabase 규칙)
+                           "access": _access(t.get("access"))})     # 누가 이 표를 쓰나 (Supabase 규칙)
         goals = [{"say": g.get("say", ""), "sql": g.get("sql", "")} for g in (m.get("goals") or []) if isinstance(g, dict)]
         info = {"file": MODEL, "project": m.get("project", ""), "db": m.get("db", "sqlite"), "tables": tables,
                 "goals": goals, "not_doing": [str(x) for x in (m.get("not_doing") or [])],   # 성공 기준의 기대 결과(샘플 값)는 담지 않는다
                 "signup": str(m["signup"]) if m.get("signup") else "",
+                "product": _product(m.get("product")),          # 만드는 것 (data-light 0.5.0, 사용자 말 그대로)
                 "outside": [str(x) for x in m["outside"] if isinstance(x, str)] if isinstance(m.get("outside"), list) else []}
     except (ValueError, AttributeError, TypeError) as e:
         info = {"file": MODEL, "error": f"정본을 읽지 못함: {e}", "tables": []}

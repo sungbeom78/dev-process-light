@@ -1,5 +1,20 @@
 # CHANGELOG
 
+## 0.11.0 -- 2026-10-17
+- 짝 스킬 data-light 를 **0.5.0** (data-expert-framework-light `c77bb7c`, 태그 `v0.5.0`) 으로 (소유자 결정 2026-10-17 "올려").
+  0.4.1(이 저장소의 0.10 3차 요청 V1~V6)과 0.5.0(만드는 것 `product`)이 함께 들어온다.
+- **만드는 것(`product`)을 정본에** -- 0.5.0 부터 정본에 `product` 가 없으면 `verify` 가 **유형 미정**으로 실패한다.
+  `light-start` 4: 사용자가 이미 말한 "무엇을 만드나"(처음 답·카드)를 `kinds`(설계까지·파일 넣기·데이터 관리·분석)와 `said`(**말 그대로**)로 옮기고,
+  여럿이면 주 목적을 한 번 묻는다(`main`·`main_said`), 말한 것이 없으면 한 번 묻는다. `analyze` 면 성공 기준이 있어야 한다.
+  `light-resume` 3: 새 kit 로 올린 예전 프로젝트에서 `verify` 가 유형 미정이면 기록에 있는 사용자 말을 옮기거나 한 번 묻는다.
+  `light-check`: `said` 가 사용자 말 그대로인지, 유형 미정을 AI 가 혼자 채우지 않는지
+- 0.10.1 임시 조치를 걷어 냄: 훅을 이 컴퓨터의 sh 가 못 읽는 문제는 data-light `hook install` 이 스스로 확인한다(`sh -n`, 못 읽으면 우리 블록을 빼고 알림) --
+  `light-start` 5·`light-resume`·`light-check` 의 손 확인 지시와 `test_install.sh` 의 0.4.0 예외를 지움 (이제 못 읽으면 시험 실패).
+  "표마다 샘플 행 하나 이상"(0.4.1 V4 로 고쳐짐), "`split --write` 뒤 `pi_` 에 access 를 손으로"(V2 로 옮겨 줌) 지시도 지움
+- `access` 두 개 목록: 게시판 `["read", "own"]` · 공지 `["read", "members"]` (V3) -- `light-start` 4 의 "정본만으로 못 적어 읽기 규칙을 손으로" 를 이것으로 바꿈
+- `light-portal` 데이터 메뉴에 **만드는 것**(종류·주 목적·사용자 말)과 두 개 목록 `access`("읽기 누구나 · 쓰기 만든 사람만"). `check_kit.py` 가 확인
+- 예시 `club-dues`: 정본에 `product`(처음 답 그대로) 를 더하고 `data/out` 을 0.5.0 으로 다시 만듦 (Supabase SQL 의 가입·익명 로그인 안내가 늘어남)
+
 ## 0.10.1 -- 2026-10-15
 - **macOS 에서 짝 data-light 0.4.0 의 검사 장치가 모든 저장을 막는 문제**에 대한 임시 조치. 0.4.0 의 pre-commit 훅은 `$( … )` 안에
   `case` 를 쓰는데, macOS 의 `/bin/sh`(bash 3.2)는 이것을 읽지 못해(`syntax error near unexpected token ';;'`) 정본과 상관없이 모든 커밋이 멈춘다.

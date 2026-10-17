@@ -67,7 +67,9 @@ COMMENT ON COLUMN dues_payment.updated_at IS '고친 시각';
 -- 실행한 규칙은 data/supabase-policies.sql 에 적어 둡니다 (이 파일을 고치면 verify 가 '정본과 다릅니다'로 멈춥니다).
 -- 사이트 코드에는 공개용 키만. service_role · sb_secret_ 키는 절대 넣지 않습니다. 적용 뒤 Supabase 의 Security Advisor 를 확인하세요.
 -- (일반 PostgreSQL 에서는 표 주인 계정에는 RLS 가 적용되지 않아 동작이 바뀌지 않습니다.)
--- 이 사이트는 새 가입을 끈 것으로 정했습니다(signup: closed). Supabase 의 가입 설정이 꺼져 있는지 확인하세요.
+-- 이 사이트는 새 가입을 끈 것으로 정했습니다(signup: closed). Supabase 의 Authentication 설정에서
+--   · 새 가입(Allow new users to sign up)을 끄고, · 익명 로그인(Allow anonymous sign-ins)도 끕니다 (익명 사용자도 로그인한 사람으로 칩니다).
+--   · 계정은 Authentication → Users → Add user 로 만들어 줍니다. 사이트에는 가입 화면을 두지 않습니다.
 ALTER TABLE member ENABLE ROW LEVEL SECURITY;
 CREATE POLICY member_members ON member FOR ALL TO authenticated USING (true) WITH CHECK (true);
 ALTER TABLE pi_member ENABLE ROW LEVEL SECURITY;

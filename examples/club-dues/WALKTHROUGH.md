@@ -5,6 +5,10 @@
 **사용자 역할의 답은 예시**입니다 (그래서 몇 분 만에 끝났습니다). 샘플 값(이름·전화번호)도 만든 값입니다.
 화면은 아직 없습니다 -- 네 단계 중 **1단계(데이터 설계)까지**입니다.
 
+> **0.11.0 에서 고친 것:** 짝 data-light 0.5.0 부터 정본에 **만드는 것(`product`)** 이 있어야 `verify` 가 통과합니다.
+> 이 예시의 정본에 처음 답("동아리 회비를 … 미납 보기.")을 그대로 `said` 로, 종류는 데이터 관리(`manage`)로 더하고 `data/out` 을 0.5.0 으로 다시 만들었습니다.
+> 아래 기록의 출력은 0.10.0(data-light 0.4.0) 때 그대로입니다 -- 지금 kit 로 하면 `light-start` 가 이 단계에서 만드는 것을 정본에 먼저 옮깁니다.
+
 결과 파일: 기록 [`dev-notes/`](dev-notes/NOW.md) (데이터 기록 [`log/데이터/2026-10-15.md`](dev-notes/log/데이터/2026-10-15.md)) ·
 데이터 설계 정본 [`data/model.light.json`](data/model.light.json) · 관계 그림 [`data/out/erd.md`](data/out/erd.md) ·
 정의서 [`data/out/spec.md`](data/out/spec.md) · Supabase 용 SQL [`data/out/schema.sql`](data/out/schema.sql) ·

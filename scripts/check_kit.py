@@ -95,6 +95,7 @@ with _tempfile.TemporaryDirectory() as _d:
     _mj = _json.loads((_root / "data" / "model.light.json").read_text(encoding="utf-8"))   # 누가 볼 수 있나(signup·access·outside)도 담는지
     _mj.update({"db": "postgresql", "signup": "closed", "outside": ["log"]})
     _mj["tables"][0]["access"] = "members"
+    _mj["tables"][1]["access"] = ["read", "own"]                                          # 읽기·쓰기 두 개 목록 (data-light 0.4.1)
     (_root / "data" / "model.light.json").write_text(_json.dumps(_mj, ensure_ascii=False), encoding="utf-8")
     (_root / "dev-notes" / "log" / "할-일").mkdir(parents=True)
     (_root / "dev-notes" / "log" / "할-일" / "2026-10-11.md").write_text(
@@ -115,8 +116,10 @@ with _tempfile.TemporaryDirectory() as _d:
                 t["name"] for t in _json.loads((_root / "data" / "model.light.json").read_text(encoding="utf-8"))["tables"]):
             errors.append("light-portal: 데이터 설계(표 목록)를 담지 못함")
         if (_dm.get("signup"), _dm.get("outside"), [t.get("access") for t in _dm.get("tables", [])][:2]) != (
-                "closed", ["log"], ["members", ""]):
+                "closed", ["log"], ["members", ["read", "own"]]):
             errors.append("light-portal: 누가 볼 수 있나(signup·access·outside)를 담지 못함")
+        if (_dm.get("product") or {}).get("kinds") != _mj["product"]["kinds"] or (_dm.get("product") or {}).get("said") != _mj["product"]["said"]:
+            errors.append("light-portal: 만드는 것(product)을 담지 못함")
         if any("sample" in t or any("default" in c for c in t.get("columns", [])) for t in _dm.get("tables", [])):
             errors.append("light-portal: 데이터 설계의 샘플 값이 페이지에 들어감 (구조만 담는다)")
     if "dev-notes/portal.html" not in (_root / ".gitignore").read_text(encoding="utf-8"):
