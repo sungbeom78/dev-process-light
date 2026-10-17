@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 0.12.1 -- 2026-10-17
+- 짝 스킬 data-light 를 **0.6.1** (data-expert-framework-light `92a4340`) 으로 -- 웹 ERD 그림(`view`)의 뷰어 사본 갱신:
+  관계를 따라 선이 덜 엇갈리는 자동 배치(계산 1초 상한), 표 고정·되돌리기·초기화, 표를 누르면 설명, 설명으로 찾기, '내 화면에만' 위치.
+  위치 파일은 2판(0.6.0 파일도 그대로 읽음). 정본 형식·명령은 그대로
+
 ## 0.12.0 -- 2026-10-17
 - 짝 스킬 data-light 를 **0.6.0** (data-expert-framework-light `9008720`) 으로 -- 웹 ERD 그림 `datalight.py view` (보기 전용, MIT 사본).
   `light-start` 4: 표가 여럿이면 사용자와 웹 그림을 띄워 함께 보고, 옮긴 위치 파일(`data/model.light.json.layout.json`)도 저장
