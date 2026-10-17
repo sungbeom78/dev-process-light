@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 0.12.3 -- 2026-10-18
+- 짝 스킬 data-light 를 **0.6.3** (data-expert-framework-light `3c7a9ec`) 으로 -- `view` 의 모든 보기에 표시 상한, 되돌리기 경쟁 수정. 정본 형식·명령은 그대로
+
 ## 0.12.2 -- 2026-10-18
 - 짝 스킬 data-light 를 **0.6.2** (data-expert-framework-light `7361f26`) 으로 -- `view` 첫 화면 즉시·큰 모델 그리기 상한. 정본 형식·명령은 그대로
 
