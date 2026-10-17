@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## 0.12.0 -- 2026-10-17
+- 짝 스킬 data-light 를 **0.6.0** (data-expert-framework-light `9008720`) 으로 -- 웹 ERD 그림 `datalight.py view` (보기 전용, MIT 사본).
+  `light-start` 4: 표가 여럿이면 사용자와 웹 그림을 띄워 함께 보고, 옮긴 위치 파일(`data/model.light.json.layout.json`)도 저장
+
 ## 0.11.0 -- 2026-10-17
 - 짝 스킬 data-light 를 **0.5.0** (data-expert-framework-light `c77bb7c`, 태그 `v0.5.0`) 으로 (소유자 결정 2026-10-17 "올려").
   0.4.1(이 저장소의 0.10 3차 요청 V1~V6)과 0.5.0(만드는 것 `product`)이 함께 들어온다.
