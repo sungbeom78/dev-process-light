@@ -147,6 +147,12 @@ with _tempfile.TemporaryDirectory() as _d:
     (_t / "requirements.txt").write_text("flask==3.0.3\n", encoding="utf-8")
     (_t / ".python-version").write_text("3.12\n", encoding="utf-8")
     (_t / "index.html").write_text('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>', encoding="utf-8")
+    for _junk in ("node_modules/x/a.js", "web/node_modules/y/b.js", ".venv/lib/c.py", "src/app.js"):
+        (_t / _junk).parent.mkdir(parents=True, exist_ok=True)
+        (_t / _junk).write_text("x = 1\n", encoding="utf-8")
+    _un = portal_tool.system_map(_t, {"FEATURES": ""}, None)["unlisted"]
+    if "src/app.js" not in _un or any("node_modules" in f or ".venv" in f for f in _un):
+        errors.append(f"light-portal 한눈에: 기능 지도에 없는 파일에 의존성 폴더가 들어감 ({_un})")
     _tl = {(x["name"], x["version"]) for x in portal_tool.tools(_t)}
     if not {("node", "20"), ("@supabase/supabase-js", "2.45.0"), ("flask", "3.0.3"), ("python", "3.12"), ("chart.js", "4.4.1")} <= _tl:
         errors.append(f"light-portal 쓰는 도구와 버전: {_tl}")

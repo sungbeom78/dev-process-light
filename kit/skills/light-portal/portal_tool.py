@@ -116,6 +116,8 @@ def data_summary(root: Path, out: Path) -> dict | None:
 # ---------------------------------------------------------------- 내 시스템 한눈에 (기능 지도 FEATURES.md + 데이터 정본 + 매니페스트)
 CODE_EXT = (".html", ".htm", ".js", ".mjs", ".ts", ".tsx", ".jsx", ".vue", ".svelte", ".css", ".scss", ".py", ".sql", ".php", ".rb", ".go", ".json")
 SKIP_DIRS = ("dev-notes/", "manual/", "data/out/", ".claude/", ".agents/", ".data-light/", ".github/", "node_modules/", "examples/", "tests/", "test/")
+PRUNE = frozenset({"node_modules", ".git", "__pycache__", ".venv", "venv", "dist", "build", ".next", ".nuxt", "vendor", "site-packages", "coverage"})
+MAX_WALK = 5000
 SKIP_FILES = ("package-lock.json", "package.json", "tsconfig.json", "data/model.light.json", "data/model.light.json.layout.json", "data/import_plan.json")
 
 
@@ -226,11 +228,25 @@ def tools(root: Path) -> list[dict]:
     return uniq
 
 
+def _project_files(root: Path) -> list:
+    """프로젝트 파일 (git 이 추적하는 것 + 아직 저장 안 한 새 파일, git 이 아니면 폴더를 걷는다).
+    node_modules · .venv · dist 같은 폴더는 어느 깊이에 있어도 들어가지 않는다 (걷지도 않는다 -- 큰 폴더에서 느려지지 않게)."""
+    out = _git(root, "ls-files", "--cached", "--others", "--exclude-standard").splitlines()
+    if not out:
+        for dp, dirs, files in os.walk(root):
+            dirs[:] = sorted(d for d in dirs if d not in PRUNE and not d.startswith("."))
+            rel = Path(dp).relative_to(root).as_posix()
+            out += [f if rel == "." else f"{rel}/{f}" for f in sorted(files)]
+            if len(out) >= MAX_WALK:
+                break
+    return sorted(f for f in out if f and not any(part in PRUNE for part in f.split("/")))[:MAX_WALK]
+
+
 def system_map(root: Path, notes: dict, data: dict | None) -> dict:
     """내 시스템 한눈에 -- 기능 → 파일 → 표, 구성, 쓰는 도구와 버전, 기능 지도에 없는 파일 · 지도에는 있는데 없는 파일."""
     fm = feature_map(notes.get("FEATURES") or "")
     listed = {f for x in fm["features"] for f in x["files"]} | set(fm["shared"]) | {f for p in fm["parts"] for f in p["files"]}
-    tracked = _git(root, "ls-files").splitlines() or [p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_file() and ".git" not in p.parts][:2000]
+    tracked = _project_files(root)
     have = set(tracked) | {Path(f).name for f in tracked}
     missing = sorted(f for f in listed if not f.endswith("/") and "*" not in f and not (root / f).exists() and f not in have
                      and not any(t.endswith("/" + f) for t in tracked))
