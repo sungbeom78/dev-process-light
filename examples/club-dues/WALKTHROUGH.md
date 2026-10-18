@@ -10,7 +10,7 @@
 > 아래 기록의 출력은 0.10.0(data-light 0.4.0) 때 그대로입니다 -- 지금 kit 로 하면 `light-start` 가 이 단계에서 만드는 것을 정본에 먼저 옮깁니다.
 
 결과 파일: 기록 [`dev-notes/`](dev-notes/NOW.md) (데이터 기록 [`log/데이터/2026-10-15.md`](dev-notes/log/데이터/2026-10-15.md)) ·
-데이터 설계 정본 [`data/model.light.json`](data/model.light.json) · 관계 그림 [`data/out/erd.md`](data/out/erd.md) ·
+데이터 설계 정본 [`data/model.light.json`](data/model.light.json) · 데이터 설명서 [`data/out/book.html`](data/out/book.html) (하는 일은 0.13.0 에서 더함) · 관계 그림 [`data/out/erd.md`](data/out/erd.md) ·
 정의서 [`data/out/spec.md`](data/out/spec.md) · Supabase 용 SQL [`data/out/schema.sql`](data/out/schema.sql) ·
 저장 목록 [`git-log.txt`](git-log.txt) · 기록 보기 페이지의 데이터 메뉴 [`portal-data.png`](portal-data.png)
 

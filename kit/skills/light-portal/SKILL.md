@@ -37,7 +37,7 @@ python .claude/skills/light-portal/portal_tool.py build --out dev-notes/portal.h
 |---|---|
 | 지금 | 기능 수·문제·저장 수, 저장 안 된 변경, `NOW.md` |
 | 기능 | `FEATURES.md` (기능 지도) |
-| 데이터 | `data/model.light.json`(짝 스킬 data-light 의 정본)이 있을 때만 -- 성공 기준·이번에 안 할 것, 표·칸(이름표·자료형·필수·개인정보), 표 사이 연결, 표를 쓰는 기능(`FEATURES.md` 데이터 절), 관계 그림·정의서 바로 가기. 구조만 담고 샘플 값은 담지 않는다 |
+| 데이터 | `data/model.light.json`(짝 스킬 data-light 의 정본)이 있을 때만 -- 성공 기준·이번에 안 할 것, 하는 일(누가 · 어느 화면에서 · 어느 표를), 표·칸(이름표·자료형·필수·개인정보), 표 사이 연결, 표를 쓰는 기능(`FEATURES.md` 데이터 절), 데이터 설명서(`data/out/book.html`)·관계 그림·정의서 바로 가기. 구조만 담고 샘플 값은 담지 않는다 |
 | 결정 | `DECISIONS.md` -- 사용자가 정한 것 / AI 가 정한 것을 나눠서 |
 | 작업 기록 | 흐름 `LOG.md` (+ `dev-notes/log/_흐름/` 의 지난달) -- 단계·기능으로 골라 보기, 줄을 누르면 그 기능·날짜의 목록·자세히 |
 | 기능별 기록 | `dev-notes/log/<기능>/<날짜>.md` -- 기능마다 날짜별로 |

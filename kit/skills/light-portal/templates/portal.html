@@ -223,7 +223,7 @@ footer.wrap { color: var(--muted); font-size: 12px; padding-bottom: 32px; overfl
       t.columns.forEach(function (c) { if (c.type === "ref" && c.ref) rels.push({ from: t, col: c }); });
     });
     var links = Object.keys(d.links || {}).map(function (k) {
-      return '<a href="' + esc(d.links[k]) + '">' + esc({ "erd.md": "관계 그림 (erd.md)", "spec.md": "정의서 (spec.md)", "schema.sql": "만드는 SQL (schema.sql)" }[k] || k) + "</a>";
+      return '<a href="' + esc(d.links[k]) + '">' + esc({ "book.html": "데이터 설명서 (book.html)", "erd.md": "관계 그림 (erd.md)", "spec.md": "정의서 (spec.md)", "schema.sql": "만드는 SQL (schema.sql)" }[k] || k) + "</a>";
     }).join(" · ");
     var h = '<div class="grid">' +
       '<div class="card stat"><div class="v">' + d.tables.length + '</div><div class="k">표</div></div>' +
@@ -250,6 +250,15 @@ footer.wrap { color: var(--muted); font-size: 12px; padding-bottom: 32px; overfl
       }).join("") +
       ((d.not_doing || []).length ? '<div class="row"><div class="h">' + pill("이번엔 안 함", "") + '<span class="t">' + esc(d.not_doing.join(", ")) + "</span></div></div>" : "") +
       '</div><p class="s" style="color:var(--muted)">확인은 <code>datalight.py verify</code> 가 샘플 데이터로 실제로 돌려 봅니다.</p>';
+    var works = Array.isArray(d.works) ? d.works : [];
+    var OPK = { C: "만들기", R: "읽기", U: "고치기", D: "지우기" };
+    var ops = function (s) { return ["C", "R", "U", "D"].filter(function (o) { return String(s).toUpperCase().indexOf(o) >= 0; }).map(function (o) { return OPK[o]; }).join("·"); };
+    if (works.length) h += "<h2>하는 일 -- 누가 · 어느 화면에서 · 어느 표를</h2>" + '<div class="list">' + works.map(function (w) {
+      return '<div class="row"><div class="h"><span class="t">' + esc(w.name) + "</span>" + (w.who ? '<span class="s">' + esc(w.who) + "</span>" : "") +
+        (w.screen.length ? '<span class="s">화면: ' + esc(w.screen.join(", ")) + "</span>" : "") + "</div>" +
+        (w.say ? '<div class="s">' + esc(w.say) + "</div>" : "") +
+        '<div class="s">' + Object.keys(w.uses).map(function (t) { return esc(lab(t)) + " " + esc(ops(w.uses[t])); }).join(" · ") + "</div></div>";
+    }).join("") + "</div>";
     if (rels.length) h += "<h2>표 사이 연결</h2>" + '<div class="list">' + rels.map(function (r) {
       return '<div class="row"><div class="h"><span class="t">' + esc(lab(r.from.name)) + " → " + esc(lab(r.col.ref)) + "</span>" +
         '<span class="s">' + esc(r.col.label || r.col.name) + (r.col.key ? " · 짝" : "") + " · 지우면: " + esc(DEL[r.col.on_delete || "keep"] || r.col.on_delete) + "</span></div></div>";

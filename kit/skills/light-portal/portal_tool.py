@@ -61,6 +61,19 @@ def _access(v):
     return str(v) if v else ""
 
 
+def _works(v) -> list[dict]:
+    """하는 일 (data-light 0.7.0): 일 · 누가 · 화면 · 쓰는 표와 그 표에 하는 일(C·R·U·D)."""
+    out = []
+    for w in v if isinstance(v, list) else []:
+        if not isinstance(w, dict) or not w.get("name"):
+            continue
+        scr = w.get("screen")
+        scr = [str(x) for x in scr if x] if isinstance(scr, list) else ([str(scr)] if scr else [])
+        uses = {str(k): str(o) for k, o in (w.get("uses") or {}).items()} if isinstance(w.get("uses"), dict) else {}
+        out.append({"name": str(w["name"]), "who": str(w.get("who") or ""), "say": str(w.get("say") or ""), "screen": scr, "uses": uses})
+    return out
+
+
 def _product(v) -> dict | None:
     if not isinstance(v, dict):
         return None
@@ -87,10 +100,11 @@ def data_summary(root: Path, out: Path) -> dict | None:
                 "goals": goals, "not_doing": [str(x) for x in (m.get("not_doing") or [])],   # 성공 기준의 기대 결과(샘플 값)는 담지 않는다
                 "signup": str(m["signup"]) if m.get("signup") else "",
                 "product": _product(m.get("product")),          # 만드는 것 (data-light 0.5.0, 사용자 말 그대로)
+                "works": _works(m.get("works")),                # 하는 일 (data-light 0.7.0)
                 "outside": [str(x) for x in m["outside"] if isinstance(x, str)] if isinstance(m.get("outside"), list) else []}
     except (ValueError, AttributeError, TypeError) as e:
         info = {"file": MODEL, "error": f"정본을 읽지 못함: {e}", "tables": []}
-    info["links"] = {n: _rel(root / "data" / "out" / n, out) for n in ("erd.md", "spec.md", "schema.sql")
+    info["links"] = {n: _rel(root / "data" / "out" / n, out) for n in ("book.html", "erd.md", "spec.md", "schema.sql")
                      if (root / "data" / "out" / n).is_file()}
     return info
 

@@ -120,7 +120,9 @@ description: 새 기능을 만들거나 기존 기능을 바꾸기 전에 쓴다
    **"누구나 읽고, 쓰기는 임원만(공지)"** = `["read", "members"]` -- `build` 가 읽기·쓰기 규칙을 따로 만든다 (손으로 쓰는 읽기 규칙이 필요 없다).
    `read` 만 준 표는 사이트에서 쓸 수 없다 -- 내용은 사용자가 Supabase 의 Table Editor 에서 넣는다.
 
-   사용자에게는 그림(ERD)·성공 기준 결과·표로 "이렇게 맞나요?" 하고 확인받는다.
+   **하는 일(`works`)** 3~7개는 사용자에게 묻지 않고 1·2번 답과 `FEATURES.md` 에서 정리한다 (일 · 누가 · 화면 · 쓰는 표와 C·R·U·D) --
+   `build` 가 만드는 **데이터 설명서**(`data/out/book.html`: 하는 일 → 화면 → 표 → 예시)가 여기서 "이 표는 왜 있나 · 누가 쓰나"를 보여 준다.
+   사용자에게는 데이터 설명서·그림(ERD)·성공 기준 결과로 "이렇게 맞나요?" 하고 확인받는다. 모르는 말은 `data-light` 의 `references/guide.md` 처럼 그 사람의 일에 빗대어 한두 줄로.
    표가 여럿이면 웹 그림을 띄워 함께 본다: `python .claude/skills/data-light/scripts/datalight.py view` (브라우저가 열림, 보기 전용,
    표를 끌어 옮기면 위치만 `data/model.light.json.layout.json` 에 -- 이 파일도 저장해 두면 다음에 같은 배치).
 5. 확인받으면 고친다: `FEATURES.md` 데이터 절(표 → 쓰는 기능), `NOW.md` "저장하는 데이터"·"개인정보".

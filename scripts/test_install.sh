@@ -81,7 +81,7 @@ if [ "$MODE" = bash ] && [ -n "$PY" ] && command -v git >/dev/null 2>&1; then
   sh -n "$G/.git/hooks/pre-commit" 2>/dev/null || fail "installed hook is not readable by this sh"   # data-light 0.4.1 부터 macOS 의 sh 도 읽는다
   mkdir -p "$G/data"; cp "$ROOT/kit/skills/data-light/examples/shop/data/model.light.json" "$G/data/"
   (cd "$G" && "$PY" -B "$DL" build data/model.light.json --out data/out >/dev/null) || fail "build"
-  git -C "$G" add data/model.light.json data/out/schema.sql data/out/erd.md data/out/spec.md
+  git -C "$G" add data/model.light.json data/out/schema.sql data/out/erd.md data/out/spec.md data/out/book.html
   git -C "$G" -c user.name=t -c user.email=t@t commit -q -m "데이터: 시험" >/dev/null 2>&1 || fail "commit through the data hook"
   printf '{"format": "data-light/1", "tables": []}\n' > "$G/data/model.light.json"; git -C "$G" add data/model.light.json
   git -C "$G" -c user.name=t -c user.email=t@t commit -q -m "데이터: 망가뜨림" >/dev/null 2>&1 && fail "broken model committed past the hook"
