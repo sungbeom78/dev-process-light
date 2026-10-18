@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## 0.14.0 -- 2026-10-18
+- **한눈에 보는 내 시스템** -- 기록 보기 페이지(`light-portal`)에 '한눈에' 메뉴: 기능 → 쓰는 파일 → 표 그림(기능이 아직 없으면 하는 일 → 표),
+  `FEATURES.md` 의 새 **'구성' 절**(어디서 돌고 무엇을 쓰나), **쓰는 도구와 버전**(`package.json`·`requirements.txt`·`pyproject.toml`·
+  `.python-version`·`.nvmrc`·`Dockerfile`·HTML 의 CDN 주소에서 직접 읽는다 -- 손으로 적지 않는다), 기능 지도에 없는 파일 · 지도에 있는데 없는 파일
+- **고칠 곳 찾기** `portal_tool.py where "<오류 글·화면·파일·표 이름>"` -- 기능 · 쓰는 파일 · 표 · 구성 · 함께 쓰는 파일과 먼저 볼 파일. 찾지 못하면 종료 코드 1
+- `AGENTS.md` 규칙 5: 새 파일은 기능 지도의 '쓰는 파일'에, 구성이 바뀌면 '구성' 절에. 규칙 6: 문제가 나면 `where` 로 고칠 곳부터 찾고 그 파일부터 본다
+- `light-check`: '기능 지도' 확인 줄 -- 만들거나 고친 파일이 지도에 있는지
+- 예시 두 개(`my-homepage`·`club-dues`)의 `FEATURES.md` 에 구성 절. 짝 스킬 data-light 는 그대로 0.7.0
+
 ## 0.13.0 -- 2026-10-18
 - 짝 스킬 data-light 를 **0.7.0** (data-expert-framework-light `9fa702a`) 으로 -- **하는 일(`works`)** 과 **데이터 설명서**(`data/out/book.html`),
   모르는 말을 일에 빗대어 푸는 `references/guide.md`. 정본 형식은 그대로 읽힌다 (`works` 는 고르는 항목)

@@ -124,6 +124,32 @@ with _tempfile.TemporaryDirectory() as _d:
             errors.append("light-portal: 데이터 설계의 샘플 값이 페이지에 들어감 (구조만 담는다)")
     if "dev-notes/portal.html" not in (_root / ".gitignore").read_text(encoding="utf-8"):
         errors.append("light-portal: .gitignore 에 넣지 않음")
+# 내 시스템 한눈에 · 고칠 곳 찾기 -- 예시의 기능 지도에서 (파일 이름이 든 오류 글 → 그 기능, 함께 쓰는 파일은 그 파일만, 쓰는 도구는 파일에서)
+_home = ROOT / "examples" / "my-homepage"
+_w = portal_tool.where(_home, "Uncaught TypeError: x is null at todo.js:42")
+if not _w["found"] or _w["found"][0]["name"] != "할 일" or _w["read"][:1] != ["todo.js"]:
+    errors.append(f"light-portal where: todo.js 오류 → 할 일 기능을 찾지 못함 ({_w['found'][:1]})")
+_w = portal_tool.where(_home, "메모가 사라져요")     # 조사가 붙은 말에서도 기능 이름을 찾는다
+if not _w["found"] or _w["found"][0]["name"] != "메모":
+    errors.append(f"light-portal where: '메모가 사라져요' → 메모 기능을 찾지 못함 ({_w['found'][:1]})")
+if portal_tool.where(_home, "방명록 글이 안 보여요")["found"]:
+    errors.append("light-portal where: 없는 기능을 찾았다고 함")
+_w = portal_tool.where(_home, "store.js")
+if not any(h["kind"] == "함께 쓰는 파일" and h["files"] == ["store.js"] for h in _w["found"]):
+    errors.append("light-portal where: 함께 쓰는 파일 store.js 를 찾지 못함")
+_sm = portal_tool.system_map(_home, {"FEATURES": (_home / "dev-notes" / "FEATURES.md").read_text(encoding="utf-8")}, None)
+if [f["name"] for f in _sm["features"]] != ["메모", "할 일", "가계부"] or _sm["shared"] != ["index.html", "style.css", "tabs.js", "store.js"] \
+        or [p["part"] for p in _sm["parts"]] != ["화면", "저장"] or _sm["missing"] or _sm["unlisted"]:
+    errors.append(f"light-portal 한눈에: 예시 기능 지도를 읽지 못함 ({_sm['features']}, {_sm['shared']}, {_sm['parts']}, {_sm['missing']}, {_sm['unlisted']})")
+with _tempfile.TemporaryDirectory() as _d:
+    _t = Path(_d)
+    (_t / "package.json").write_text(_json.dumps({"engines": {"node": ">=20"}, "dependencies": {"@supabase/supabase-js": "^2.45.0"}}), encoding="utf-8")
+    (_t / "requirements.txt").write_text("flask==3.0.3\n", encoding="utf-8")
+    (_t / ".python-version").write_text("3.12\n", encoding="utf-8")
+    (_t / "index.html").write_text('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>', encoding="utf-8")
+    _tl = {(x["name"], x["version"]) for x in portal_tool.tools(_t)}
+    if not {("node", "20"), ("@supabase/supabase-js", "2.45.0"), ("flask", "3.0.3"), ("python", "3.12"), ("chart.js", "4.4.1")} <= _tl:
+        errors.append(f"light-portal 쓰는 도구와 버전: {_tl}")
 ex = ROOT / "examples" / "my-homepage" / "manual"
 for a in ("manual.css", "manual.js"):
     if (ex / "assets" / a).read_bytes() != (LM / "assets" / a).read_bytes():
@@ -180,6 +206,8 @@ if "- 데이터:" not in _now_t:
     errors.append("kit/dev-notes/NOW.md: 작업 카드 형식에 '- 데이터:' 줄이 없음")
 if "## 데이터 (표)" not in (KIT / "dev-notes" / "FEATURES.md").read_text(encoding="utf-8"):
     errors.append("kit/dev-notes/FEATURES.md: '## 데이터 (표)' 절이 없음")
+if "## 구성" not in (KIT / "dev-notes" / "FEATURES.md").read_text(encoding="utf-8"):
+    errors.append("kit/dev-notes/FEATURES.md: '## 구성' 절이 없음 (내 시스템 한눈에 · 고칠 곳 찾기가 읽는다)")
 for _sk in ("light-start", "light-check", "light-save", "light-undo", "light-resume"):
     if "data-light" not in (KIT / "skills" / _sk / "SKILL.md").read_text(encoding="utf-8"):
         errors.append(f"{_sk}: 짝 스킬 data-light 로 넘기는 곳이 없음")

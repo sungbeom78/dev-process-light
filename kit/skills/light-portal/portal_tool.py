@@ -1,6 +1,10 @@
 """기록 보기 페이지 만들기 -- dev-notes 기록과 저장(git) 목록, 데이터 설계(data-light 정본이 있으면)를 한 화면에서 보는 HTML 파일 한 개.
 
     python portal_tool.py build [--root .] [--out dev-notes/portal.html]
+    python portal_tool.py where "<오류 글·파일 이름·화면·표 이름>" [--root .]   # 고칠 곳 -- 기능 지도에서 기능·파일·표를 찾는다
+
+'한눈에'(내 시스템 한눈에): 기능 → 파일 → 표 그림, 구성(어디서 돌고 무엇을 쓰나), 쓰는 도구와 버전(package.json·requirements.txt 등에서 읽음),
+기능 지도에 없는 파일·지도에는 있는데 없는 파일. 문제가 생기면 코드 전체를 훑지 않고 여기서 고칠 곳부터 찾는다.
 
 - 서버·로그인 없이 브라우저로 파일을 연다. 인터넷에 올리지 않는다.
 - 프로젝트 안에 만들면 .gitignore 에 넣는다 (기록에서 다시 만들 수 있는 파일이라 저장할 필요가 없다).
@@ -109,6 +113,182 @@ def data_summary(root: Path, out: Path) -> dict | None:
     return info
 
 
+# ---------------------------------------------------------------- 내 시스템 한눈에 (기능 지도 FEATURES.md + 데이터 정본 + 매니페스트)
+CODE_EXT = (".html", ".htm", ".js", ".mjs", ".ts", ".tsx", ".jsx", ".vue", ".svelte", ".css", ".scss", ".py", ".sql", ".php", ".rb", ".go", ".json")
+SKIP_DIRS = ("dev-notes/", "manual/", "data/out/", ".claude/", ".agents/", ".data-light/", ".github/", "node_modules/", "examples/", "tests/", "test/")
+SKIP_FILES = ("package-lock.json", "package.json", "tsconfig.json", "data/model.light.json", "data/model.light.json.layout.json", "data/import_plan.json")
+
+
+def _cells(line: str) -> list[str]:
+    return [c.strip() for c in line.strip().strip("|").split("|")]
+
+
+def _section(text: str, title: str) -> str:
+    m = re.search(r"\n##\s*" + re.escape(title) + r"[^\n]*\n([\s\S]*?)(?=\n##\s|$)", "\n" + (text or ""))
+    return m.group(1) if m else ""
+
+
+def _rows(block: str) -> list[list[str]]:
+    out = []
+    for ln in block.splitlines():
+        if not ln.strip().startswith("|") or re.match(r"^\s*\|[\s:|-]+\|\s*$", ln) or "(예)" in ln:
+            continue
+        out.append(_cells(ln))
+    return out[1:] if out else out                     # 첫 줄은 머리
+
+
+FILE_RX = re.compile(r"[\w.\-/]*\w\.[A-Za-z0-9]{1,6}\b|[\w.\-]+(?:/[\w.\-]+)*/(?=\s|$|[,)])")
+
+
+def _files(cell: str) -> list[str]:
+    """칸 글에서 파일·폴더 이름만 (설명 괄호는 뺀다): 'index.html (화면 틀), store.js' → index.html, store.js"""
+    got = [m.group(0) for m in FILE_RX.finditer((cell or "").replace("`", " "))]
+    return list(dict.fromkeys(x for x in got if not re.match(r"^v?\d+(\.\d+)+$", x)))
+
+
+def feature_map(text: str) -> dict:
+    """FEATURES.md -- 기능 표(기능·상태·쓰는 파일) · 함께 쓰는 파일 · 구성 · 데이터(표 → 쓰는 기능)."""
+    text = re.sub(r"<!--[\s\S]*?-->", "", text or "")
+    head = text.split("\n## ", 1)[0]
+    feats = []
+    for c in _rows(head):
+        if len(c) >= 3 and c[0] and c[0] != "기능":
+            feats.append({"name": c[0], "state": c[1], "files": _files(c[2]), "check": c[3] if len(c) > 3 else ""})
+    shared = []
+    for ln in _section(text, "함께 쓰는 파일").splitlines():
+        if ln.strip().startswith("-") and "(예)" not in ln:
+            shared += _files(ln.strip()[1:])
+    parts = [{"part": c[0], "what": c[1] if len(c) > 1 else "", "where": c[2] if len(c) > 2 else "", "files": _files(c[3]) if len(c) > 3 else []}
+             for c in _rows(_section(text, "구성")) if c and c[0] and c[0] != "부분"]
+    tables = [{"name": c[0].strip("`"), "label": c[1] if len(c) > 1 else "", "features": [x.strip() for x in re.split(r"[,、]\s*", c[2]) if x.strip()] if len(c) > 2 else []}
+              for c in _rows(_section(text, "데이터")) if c and c[0] and c[0] != "표"]
+    return {"features": feats, "shared": shared, "parts": parts, "tables": tables}
+
+
+def _ver(spec) -> str:
+    m = re.search(r"(\d+(?:\.\d+)*)", str(spec or ""))
+    return m.group(1) if m else str(spec or "")
+
+
+def tools(root: Path) -> list[dict]:
+    """쓰는 도구와 버전 -- 프로젝트의 파일에서 직접 읽는다 (AI 가 적은 글이 아니라). 많으면 앞의 40개."""
+    out = []
+
+    def add(name, ver, f):
+        if len(out) < 40:
+            out.append({"name": str(name), "version": _ver(ver), "file": f})
+    p = root / "package.json"
+    if p.is_file():
+        try:
+            d = json.loads(p.read_text(encoding="utf-8-sig"))
+            for k, v in (d.get("engines") or {}).items():
+                add(k, v, "package.json")
+            for sect in ("dependencies", "devDependencies"):
+                for k, v in (d.get(sect) or {}).items():
+                    add(k, v, "package.json")
+        except (ValueError, AttributeError):
+            pass
+    for name in ("requirements.txt", "requirements-dev.txt"):
+        p = root / name
+        if p.is_file():
+            for ln in p.read_text(encoding="utf-8", errors="replace").splitlines():
+                m = re.match(r"^([A-Za-z0-9_.\-]+)\s*(?:\[[^\]]*\])?\s*(?:==|>=|~=|<=|>|<)\s*([^\s,;#]+)", ln.split("#", 1)[0].strip())
+                if m:
+                    add(m.group(1), m.group(2), name)
+    p = root / "pyproject.toml"
+    if p.is_file():
+        t = p.read_text(encoding="utf-8", errors="replace")
+        m = re.search(r'(?m)^\s*requires-python\s*=\s*"([^"]+)"', t)
+        if m:
+            add("python", m.group(1), "pyproject.toml")
+        for m in re.finditer(r'"\s*([A-Za-z0-9_.\-]+)\s*(?:\[[^\]]*\])?\s*(?:==|>=|~=)\s*([^",;\s]+)', t):
+            add(m.group(1), m.group(2), "pyproject.toml")
+    for name, tool in ((".python-version", "python"), (".nvmrc", "node"), (".node-version", "node")):
+        p = root / name
+        if p.is_file():
+            add(tool, p.read_text(encoding="utf-8", errors="replace").strip(), name)
+    p = root / "supabase" / "config.toml"
+    if p.is_file():
+        m = re.search(r"(?m)^\s*major_version\s*=\s*(\d+)", p.read_text(encoding="utf-8", errors="replace"))
+        if m:
+            add("postgres (Supabase)", m.group(1), "supabase/config.toml")
+    for f in sorted(root.glob("*.html"))[:20]:                   # CDN 으로 불러오는 라이브러리 (예: @supabase/supabase-js@2.45.0)
+        for src in re.findall(r"""src=["']([^"']+)["']""", f.read_text(encoding="utf-8", errors="replace")):
+            m = re.search(r"(@[\w.\-]+/[\w.\-]+|[\w.\-]+)@(\d+(?:\.\d+)*)", src)
+            if m:
+                add(m.group(1), m.group(2), f.name)
+    seen, uniq = set(), []
+    for t in out:
+        k = (t["name"].lower(), t["file"])
+        if k not in seen:
+            seen.add(k)
+            uniq.append(t)
+    return uniq
+
+
+def system_map(root: Path, notes: dict, data: dict | None) -> dict:
+    """내 시스템 한눈에 -- 기능 → 파일 → 표, 구성, 쓰는 도구와 버전, 기능 지도에 없는 파일 · 지도에는 있는데 없는 파일."""
+    fm = feature_map(notes.get("FEATURES") or "")
+    listed = {f for x in fm["features"] for f in x["files"]} | set(fm["shared"]) | {f for p in fm["parts"] for f in p["files"]}
+    tracked = _git(root, "ls-files").splitlines() or [p.relative_to(root).as_posix() for p in root.rglob("*") if p.is_file() and ".git" not in p.parts][:2000]
+    have = set(tracked) | {Path(f).name for f in tracked}
+    missing = sorted(f for f in listed if not f.endswith("/") and "*" not in f and not (root / f).exists() and f not in have
+                     and not any(t.endswith("/" + f) for t in tracked))
+    names = {Path(f).name for f in listed}
+    unlisted = sorted(f for f in tracked if f.lower().endswith(CODE_EXT) and not f.startswith(SKIP_DIRS) and f not in SKIP_FILES
+                      and f not in listed and Path(f).name not in names and not f.startswith("."))[:40]
+    works = (data or {}).get("works") or []
+    return dict(fm, tools=tools(root), missing=missing, unlisted=unlisted,
+                works=[{"name": w["name"], "screen": w["screen"], "uses": sorted(w["uses"])} for w in works])
+
+
+def where(root: Path, query: str) -> dict:
+    """고칠 곳 찾기 (light) -- 오류 글·파일 이름·화면·표 이름에서 기능 지도의 기능 · 파일 · 표로. 먼저 볼 파일을 준다."""
+    notes = {n: ((root / "dev-notes" / f"{n}.md").read_text(encoding="utf-8") if (root / "dev-notes" / f"{n}.md").is_file() else None) for n in NOTES}
+    data = data_summary(root, root / DEFAULT_OUT)
+    m = system_map(root, notes, data)
+    q = (query or "").strip()
+    ql = q.lower()
+    toks = [t for t in re.split(r"[\s,;:()\[\]{}'\"=<>]+", ql) if len(t) >= 2]
+    hits, read = [], []
+
+    def score_text(*xs):
+        # names inside the query count too: Korean particles ("메모가", "가계부는") keep the token from matching the name
+        names = [str(x).lower() for x in xs if x]
+        s = " ".join(names)
+        return (3 if ql and ql in s else 0) + sum(1 for t in toks if t in s) + sum(4 for n in names if len(n) >= 2 and n in ql)
+    files_in_q = {Path(x).name.lower() for x in re.findall(r"[\w./\\-]+\.[A-Za-z0-9]{1,5}", q)}
+    for f in m["features"]:
+        sc = score_text(f["name"]) + (5 if any(Path(x).name.lower() in files_in_q for x in f["files"]) else 0)
+        if sc:
+            hits.append({"kind": "기능", "name": f["name"], "state": f["state"], "files": f["files"], "score": sc,
+                         "tables": [t["name"] for t in m["tables"] if f["name"] in t["features"]]})
+    for t in m["tables"]:
+        sc = score_text(t["name"], t["label"])
+        if sc:
+            hits.append({"kind": "표", "name": t["name"], "label": t["label"], "features": t["features"], "score": sc,
+                         "files": [x for f in m["features"] if f["name"] in t["features"] for x in f["files"]]})
+    for w in m["works"]:
+        sc = score_text(w["name"], " ".join(w["screen"]))
+        if sc:
+            hits.append({"kind": "하는 일", "name": w["name"], "screen": w["screen"], "tables": w["uses"], "score": sc, "files": []})
+    for p in m["parts"]:
+        sc = score_text(p["part"], p["what"], p["where"]) + (5 if any(Path(x).name.lower() in files_in_q for x in p["files"]) else 0)
+        if sc:
+            hits.append({"kind": "구성", "name": p["part"], "what": p["what"], "where": p["where"], "files": p["files"], "score": sc})
+    sh = [x for x in m["shared"] if Path(x).name.lower() in files_in_q]
+    if sh:
+        hits.append({"kind": "함께 쓰는 파일", "name": ", ".join(sh), "files": sh, "score": 4,
+                     "note": "여러 기능이 같이 쓰는 파일 -- 고치면 모든 기능(" + ", ".join(f["name"] for f in m["features"]) + ")을 점검한다"})
+    hits.sort(key=lambda h: -h["score"])
+    for h in hits[:5]:
+        read += h.get("files") or []
+    if (root / MODEL).is_file() and any(h["kind"] in ("표", "하는 일") for h in hits[:5]):
+        read.append(MODEL)
+    return {"query": q, "found": hits[:5], "read": list(dict.fromkeys(read))[:8],
+            "unlisted": m["unlisted"][:10], "note": "" if hits else "찾지 못했다 -- 기능 이름·화면 이름·파일 이름·표 이름으로 다시 찾거나, 기능 지도(FEATURES.md)를 채운다"}
+
+
 def collect(root: Path, out: Path) -> dict:
     notes = {}
     for n in NOTES:
@@ -132,11 +312,12 @@ def collect(root: Path, out: Path) -> dict:
     dirty = [ln[3:] for ln in _git(root, "status", "--porcelain").splitlines() if ln[3:] and not ln[3:].startswith("dev-notes/portal")]
     manual = root / "manual" / "index.html"
     manual_href = _rel(manual, out) if manual.is_file() else None
+    data = data_summary(root, out)
     return {"project": _project_name(notes["NOW"], root), "folder": str(root), "generated_at": datetime.now().astimezone().isoformat(timespec="seconds"),
             "notes": notes, "archive": [{"name": p.stem, "text": p.read_text(encoding="utf-8")} for p in archive[:24]],
             "feature_logs": feature_logs,
             "saves": saves, "dirty": dirty, "remote": bool(_git(root, "remote")), "manual": manual_href,
-            "data": data_summary(root, out)}
+            "data": data, "map": system_map(root, notes, data)}
 
 
 def _ensure_ignored(root: Path, out: Path) -> str | None:
@@ -169,7 +350,30 @@ def main(argv=None) -> int:
     b = sub.add_parser("build")
     b.add_argument("--root", default=".")
     b.add_argument("--out", default=DEFAULT_OUT)
+    w = sub.add_parser("where", help="고칠 곳 찾기 -- 오류 글·파일·화면·표 이름 → 기능 · 파일 · 표")
+    w.add_argument("query", nargs="+")
+    w.add_argument("--root", default=".")
+    w.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
+    if a.cmd == "where":
+        r = where(Path(a.root).resolve(), " ".join(a.query))
+        if a.json:
+            print(json.dumps(r, ensure_ascii=False, indent=1))
+            return 0 if r["found"] else 1
+        print(f"[찾기] {r['query']}")
+        for h in r["found"]:
+            extra = " · ".join(x for x in [h.get("state", ""), ("표 " + ", ".join(h["tables"])) if h.get("tables") else "",
+                                           ("쓰는 기능 " + ", ".join(h["features"])) if h.get("features") else "",
+                                           ("화면 " + ", ".join(h["screen"])) if h.get("screen") else "", h.get("what", ""), h.get("where", ""),
+                                           h.get("note", "")] if x)
+            print(f"- {h['kind']} {h['name']}" + (f" -- {extra}" if extra else ""))
+        if r["found"]:
+            print("먼저 볼 파일: " + (", ".join(r["read"]) if r["read"] else "(기능 지도에 파일이 없다 -- FEATURES.md 의 '쓰는 파일'을 채운다)"))
+        if r["unlisted"]:
+            print("기능 지도에 없는 파일: " + ", ".join(r["unlisted"]) + " -- FEATURES.md 의 기능·함께 쓰는 파일·구성에 넣는다")
+        if r["note"]:
+            print(r["note"])
+        return 0 if r["found"] else 1
     rep = build(Path(a.root), Path(a.out))
     print(f"[OK] 기록 보기 페이지: {rep['out']}")
     print(f"     브라우저로 열기: {rep['uri']}")

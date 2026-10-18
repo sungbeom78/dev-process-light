@@ -1,6 +1,6 @@
 ---
 name: light-portal
-description: 지금까지의 기록(지금 상황·기능 지도·데이터 설계·결정·작업 기록·저장 목록·이름표)을 한 화면에서 보는 페이지를 만들 때 쓴다. 사용자가 "기록 보여 줘", "지금까지 뭐 했어?"라고 하거나, 저장(light-save) 뒤 설정된 곳에 다시 만든다. 서버·로그인 없이 브라우저로 여는 파일 하나다.
+description: 지금까지의 기록(지금 상황·한눈에 보는 시스템 지도·기능 지도·데이터 설계·결정·작업 기록·저장 목록·이름표)을 한 화면에서 보는 페이지를 만들 때, 문제가 났을 때 고칠 곳(기능·파일·표)을 찾을 때 쓴다. 사용자가 "기록 보여 줘", "지금까지 뭐 했어?"라고 하거나, 저장(light-save) 뒤 설정된 곳에 다시 만든다. 서버·로그인 없이 브라우저로 여는 파일 하나다.
 ---
 
 # light-portal — 기록 보기 페이지
@@ -36,6 +36,7 @@ python .claude/skills/light-portal/portal_tool.py build --out dev-notes/portal.h
 | 메뉴 | 내용 |
 |---|---|
 | 지금 | 기능 수·문제·저장 수, 저장 안 된 변경, `NOW.md` |
+| 한눈에 | 내 시스템 지도 -- 기능 → 쓰는 파일 → 표 그림(기능이 아직 없으면 하는 일 → 표), `FEATURES.md` 의 '구성'(어디서 돌고 무엇을 쓰나), 쓰는 도구와 버전(`package.json`·`requirements.txt`·`pyproject.toml`·`.python-version`·`.nvmrc`·`Dockerfile`·HTML 의 CDN 주소에서 직접 읽음), 기능 지도에 없는 파일 · 지도에 있는데 없는 파일 |
 | 기능 | `FEATURES.md` (기능 지도) |
 | 데이터 | `data/model.light.json`(짝 스킬 data-light 의 정본)이 있을 때만 -- 성공 기준·이번에 안 할 것, 하는 일(누가 · 어느 화면에서 · 어느 표를), 표·칸(이름표·자료형·필수·개인정보), 표 사이 연결, 표를 쓰는 기능(`FEATURES.md` 데이터 절), 데이터 설명서(`data/out/book.html`)·관계 그림·정의서 바로 가기. 구조만 담고 샘플 값은 담지 않는다 |
 | 결정 | `DECISIONS.md` -- 사용자가 정한 것 / AI 가 정한 것을 나눠서 |
@@ -44,6 +45,17 @@ python .claude/skills/light-portal/portal_tool.py build --out dev-notes/portal.h
 | 저장 | git 저장 목록 (되돌아올 수 있는 지점) |
 | 이름표 | `NAMES.md` |
 | 사용설명서 | `manual/index.html` 이 있으면 바로 가기 |
+
+## 고칠 곳 찾기 (`where`)
+문제가 나면 코드 전체를 훑기 전에 기능 지도에서 고칠 곳부터 찾는다 -- 읽는 파일이 줄어 빠르고 다른 기능을 덜 건드린다.
+```
+python .claude/skills/light-portal/portal_tool.py where "가계부 합계가 틀려요"
+python .claude/skills/light-portal/portal_tool.py where "budget.js:12 TypeError"
+```
+- 오류 글·화면 이름·기능 이름·파일 이름·표 이름으로 찾는다. 기능 · 쓰는 파일 · 표 · 구성 · 함께 쓰는 파일과 **먼저 볼 파일**을 알려 준다
+  (함께 쓰는 파일이면 "모든 기능을 점검"이라고 함께 알려 준다). `--json` 은 같은 내용을 JSON 으로.
+- 찾지 못하면 종료 코드 1 -- 다른 말로 다시 찾거나, 기능 지도(`FEATURES.md`)가 비어 있으면 채운다.
+- "기능 지도에 없는 파일"이 나오면 그 파일을 `FEATURES.md` 의 기능('쓰는 파일')·함께 쓰는 파일·구성 중 맞는 곳에 넣는다 (`light-check` 의 '기능 지도').
 
 ## 언제 다시 만드나
 - `light-save` 가 저장할 때마다 (설정이 `만들지 않음` 이 아니면)
