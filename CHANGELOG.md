@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 0.16.0 -- 2026-10-20
+- **새 버전 반영이 원칙, 직접 고친 것은 묻는다** (소유자 원칙 2026-10-20: "프레임워크가 변경되면 로컬 파일이 있어도 반영하는 걸 원칙으로 한다.
+  다만 결정은 사용자에게 맡긴다 ... 차이가 발생할 경우 무조건 물어볼 수 있도록") -- 설치기(`install.sh` · `install.ps1`)가 직접 고친 스킬 폴더와
+  `AGENTS.md` 규칙 블록을 **말없이 덮지 않는다**: 지난번에 설치한 그대로거나 손대지 않은 예전 판(`kit/.history`)이면 새 버전으로 바꾸고, 고친 것은
+  `[물어볼 것]` 으로 알린 뒤 3 으로 끝난다. 사용자가 고른 대로 `--update <이름|all>`(지금 것은 `.light-backup/` 에) · `--keep <이름|all>`
+  (PowerShell 은 `-Update` · `-Keep`). 기록은 `.claude/skills/.light-kit` -- 고른 것은 그대로인 동안 다시 묻지 않는다
+- 지문은 셋이 같은 셈법 (`install.sh` · `install.ps1` · `scripts/kit_hash.py`, 줄바꿈 CRLF 는 같은 것으로). `check_kit` 이 `kit/.history` 가 지금 판을 담는지 본다
+- bash 설치기가 CRLF 로 바뀐 `AGENTS.md` 의 블록을 알아보지 못하고 하나 더 붙이던 것
+- `light-resume` '다시 설치한 뒤': 설치기 · `hook install` 의 '물어볼 것'을 사용자에게 보이고 고르게 한다 (지운 CI 파일을 말없이 두지 않는다)
+- 짝 스킬 data-light 를 **0.9.0** (data-expert-framework-light `e8dab41`) 으로 -- `hook install` 도 직접 고친 CI 파일 · 지운 `.gitignore` 줄을 묻는다
+
 ## 0.15.1 -- 2026-10-20
 - 짝 스킬 data-light 를 **0.8.1** (data-expert-framework-light `fbeb827`) 으로 -- 화면 틀 1.3.1 (긴 경로의 링크 검사), 틀 지문이 Windows 에서도 같게
 

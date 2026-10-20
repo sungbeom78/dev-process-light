@@ -56,14 +56,14 @@ for name in LIGHT:
         errors.append(f"{name}: frontmatter 필드는 name, description 만 ({sorted(fm)})")
     if not (20 <= len(fm.get("description", "")) <= 1024):
         errors.append(f"{name}: description 길이 {len(fm.get('description', ''))}")
-    for ref in set(re.findall(r"light-[a-z]+", text)):
+    for ref in set(re.findall(r"(?<![.\w])light-[a-z]+", text)):
         if ref not in SKILLS:
             errors.append(f"{name}: 없는 스킬 이름 {ref}")
 
 agents = (KIT / "AGENTS.md").read_text(encoding="utf-8")
 if agents.count("<!-- dev-process-light:begin -->") != 1 or agents.count("<!-- dev-process-light:end -->") != 1:
     errors.append("kit/AGENTS.md 블록 표시가 한 쌍이 아님")
-for ref in set(re.findall(r"light-[a-z]+", agents)):
+for ref in set(re.findall(r"(?<![.\w])light-[a-z]+", agents)):
     if ref not in SKILLS:
         errors.append(f"AGENTS.md: 없는 스킬 이름 {ref}")
 for n in NOTES:
@@ -342,6 +342,25 @@ for ex in [_shop, *DATA_EXAMPLES]:
             errors.append(f"{name}: LOG.md 에 '· 기획 · 데이터 ·' 흐름 줄이 없음")
         if not list((notes / "log" / "데이터").glob("*.md")):
             errors.append(f"{name}: dev-notes/log/데이터/<날짜>.md 없음")
+# 설치기가 '손대지 않은 예전 판'을 알아보는 지문 목록 (kit/.history) -- kit 을 바꾸면 다시 만든다 (scripts/kit_hash.py history --write)
+sys.path.insert(0, str(ROOT / "scripts"))
+import kit_hash  # noqa: E402
+
+_hist = set((KIT / ".history").read_text(encoding="utf-8").splitlines()) if (KIT / ".history").is_file() else set()
+_miss = sorted(kit_hash.history_now() - _hist)
+if _miss:
+    errors.append("kit/.history 에 지금 판의 지문이 없다 -- python scripts/kit_hash.py history --write: " + ", ".join(_miss[:4]))
+import shutil as _sh  # noqa: E402
+import subprocess as _sp  # noqa: E402
+if _sh.which("bash"):
+    _r = _sp.run(["bash", "-n", str(ROOT / "install.sh")], capture_output=True, text=True, encoding="utf-8", errors="replace")
+    if _r.returncode != 0:
+        errors.append("install.sh 문법: " + (_r.stderr or _r.stdout).strip()[:200])
+for _f in ("install.sh", "install.ps1"):
+    _t = (ROOT / _f).read_text(encoding="utf-8-sig")
+    for _k in ("--update" if _f.endswith(".sh") else "$Update", "--keep" if _f.endswith(".sh") else "$Keep", ".light-kit", ".history"):
+        if _k not in _t:
+            errors.append(f"{_f}: 직접 고친 것을 묻는 부분({_k})이 없다 -- 두 설치기는 같은 일을 한다")
 # 짝 사본 안에 실행 흔적이 생기지 않았는지 (설치 때 같이 복사된다)
 if [p for p in _dl.rglob("__pycache__")] or list(_dl.rglob("*.db")):
     errors.append("kit/skills/data-light 안에 __pycache__ 나 .db 가 생김 -- 지운다")

@@ -311,7 +311,7 @@ def where(root: Path, query: str) -> dict:
 
 
 # ---------------------------------------------------------------- 개발 관리 사이트 (가벼운 판 5쪽 -- 파일로 연다, 서버 · 포트 없음)
-VERSION = "0.15.1"                       # dev-process-light 판 (CHANGELOG 맨 위와 같다 -- check_kit 가 본다)
+VERSION = "0.16.0"                       # dev-process-light 판 (CHANGELOG 맨 위와 같다 -- check_kit 가 본다)
 SITE_OUT = "dev-notes/outputs/site"      # 사양 v1.1 의 dev-light 자리 -- dev-notes/outputs/ 에 .gitignore(*) 를 둔다
 MAX_LOG_PAGES = 60                       # 기능별 기록 쪽은 최근 것만 (나머지는 목록에 이름만)
 MAX_FLOW = 400

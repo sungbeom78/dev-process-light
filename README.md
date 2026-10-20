@@ -73,7 +73,7 @@ AI는 설명서의 **따라 하기를 실제로 해 보고** 저장한 뒤, 바�
 | 전문판 | dev-process-framework | data-expert-framework |
 | 짝을 묶는 법 | 이 저장소가 `data-light` 를 **정해 둔 커밋 그대로** `kit/skills/data-light` 에 담아 함께 설치 ([`data-light.lock.json`](data-light.lock.json)) | 전문판은 서브모듈로 고정 |
 
-지금 짝 버전: **data-light 0.8.1** (data-expert-framework-light `fbeb827`).
+지금 짝 버전: **data-light 0.9.0** (data-expert-framework-light `e8dab41`).
 
 어떻게 이어지나요:
 - **질문은 한 번만** -- 누가 쓰나·로그인·올리는 곳·개인정보는 `NOW.md` 의 다섯 줄에 한 번 적고, 어느 스킬도 다시 묻지 않습니다.
@@ -111,8 +111,11 @@ powershell -ExecutionPolicy Bypass -File $HOME\dev-process-light\install.ps1 <�
 ```
 git 이 없으면 이 페이지의 **Code → Download ZIP** 으로 받아 풀고 같은 명령을 실행하세요.
 
-설치기는 **이미 있는 기록(`dev-notes/`)·데이터(`data/`)와 내가 쓴 `AGENTS.md` 내용을 덮어쓰지 않습니다.** 다시 실행하면 스킬(짝 스킬 data-light 포함)만 새 버전으로 바뀝니다.
-그래서 `light-*`·`data-light` 스킬과 규칙 블록은 프로젝트에서 고치지 않습니다. **이 프로젝트만의 규칙은 `AGENTS.md` 의 규칙 블록 밖에** 적으세요.
+설치기는 **이미 있는 기록(`dev-notes/`)·데이터(`data/`)와 내가 쓴 `AGENTS.md` 내용을 덮어쓰지 않습니다.** 다시 실행하면 스킬(짝 스킬 data-light 포함)과 규칙 블록이 새 버전으로 바뀝니다.
+`light-*`·`data-light` 스킬과 규칙 블록은 프로젝트에서 고치지 않는 것이 좋습니다 -- **이 프로젝트만의 규칙은 `AGENTS.md` 의 규칙 블록 밖에** 적으세요.
+그래도 고쳤다면 설치기가 **말없이 덮지 않고 묻습니다** (새 버전 반영이 원칙이고, 어느 쪽을 둘지는 내가 정합니다): 지난번에 설치한 그대로인 것만 바꾸고,
+고친 것은 `[물어볼 것]` 으로 알린 뒤 멈춥니다(종료 3). 새 버전으로 하려면 `--update <이름|all>`(지금 것은 `.light-backup/` 에 남김), 지금 것을 두려면 `--keep <이름|all>`
+(PowerShell 은 `-Update` · `-Keep`). 기록은 `.claude/skills/.light-kit` 에 남아 다음 설치 때 다시 묻지 않습니다.
 
 ## 사용
 설치 후 AI 에게 처음 한 번:

@@ -50,10 +50,14 @@ description: 작업을 시작하거나 이어갈 때 가장 먼저 쓴다. dev-n
 **고침**(` M`)과 그 폴더 안의 새 파일뿐이면 사용자가 dev-process-light 를 새로 설치한 것이다 (스킬 폴더를 한 번도 저장하지 않아 `??` 로만 보이면
 아니다 -- 첫 저장 때 같이 넣지 않은 것이니 다음 저장에 넣는다). "이어서 할지 / 되돌릴지" 묻지 않고 이렇게 한다:
 1. 사용자에게 한 줄로 알린다: "dev-process-light 를 새 버전으로 설치하셨네요. 맞춰 두고 저장할게요."
+   설치기가 `[물어볼 것]`(직접 고친 스킬 · 규칙 블록 -- 말없이 덮지 않았다)을 남겼으면 그 목록을 쉬운 말로 보이고 고르게 한다
+   (권장: 새 버전으로 -- 고친 내용은 `.light-backup/` 에 남는다). 답대로 설치기를 다시 실행하고(`--update <이름|all>` · `--keep <이름|all>`),
+   답은 `DECISIONS.md` 에 `[사용자]` 로.
 2. 데이터 검사 장치가 `설치함` 이면 `datalight.py hook status` 를 보고 (`python .claude/skills/data-light/scripts/datalight.py`):
    - `결과: 최신` → 그대로.
-   - `결과: 버전이 다릅니다` 또는 `훅: 없음` → `datalight.py hook install`. 이때 `.github/workflows/data-light.yml` 이 없으면 `--no-ci` 를 붙인다
-     (예전 버전은 늘 만들었으니, 없다면 사용자가 지운 것이다 -- 되살리지 않는다).
+   - `결과: 버전이 다릅니다` 또는 `훅: 없음` → `datalight.py hook install`. 결과에 `물어볼 것:` 이 나오면(직접 고친 CI 파일 · 지운 CI 파일 ·
+     지운 `.gitignore` 줄) 그대로 사용자에게 보이고 고른 대로 다시 실행한다 (권장: 새 판 · 다시 넣기 -- `--update ci|gitignore` · `--keep ci|gitignore` ·
+     지운 CI 파일은 `--ci` 다시 만들기 / `--no-ci` 만들지 않기). 답은 `DECISIONS.md` 에 `[사용자]` 로.
      결과에 "이미 있어 건드리지 않았습니다" 가 나오면(`git config core.hooksPath` 가 있는 저장소 등 -- 예전 버전은 `.git/hooks` 에만 깔았다)
      다른 검사 훅이 그 자리에 있는 것이다 -- 사용자에게 알리고, 좋다고 하면 `--append`. 다시 `hook status` 로 `결과: 최신` 을 확인한다
      (`hook install` 이 이 컴퓨터의 sh 가 훅을 읽는지 스스로 확인한다 -- 못 읽는다고 나오면 `light-start` "넘겨주는 순서" 5 대로).

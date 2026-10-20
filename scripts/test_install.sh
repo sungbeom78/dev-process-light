@@ -8,9 +8,19 @@ T="$(mktemp -d)/my project"          # 공백이 든 경로로 시험
 mkdir -p "$T"
 # PowerShell 에는 Windows 경로로 넘긴다 (Git Bash 의 /tmp/... 는 pwsh 가 모름)
 winpath() { if command -v cygpath >/dev/null 2>&1; then cygpath -w "$1"; else printf '%s' "$1"; fi; }
-run() {
-  if [ "$MODE" = pwsh ]; then pwsh -NoProfile -ExecutionPolicy Bypass -File "$(winpath "$ROOT/install.ps1")" "$(winpath "$T")" >/dev/null
-  else bash "$ROOT/install.sh" "$T" >/dev/null; fi
+PWSH="${PWSH:-pwsh}"
+run() {   # run [--update X] [--keep X] -- 끝난 코드를 그대로 (3 = 물어볼 것)
+  local rc=0
+  if [ "$MODE" = pwsh ]; then
+    local extra=()
+    while [ $# -gt 0 ]; do
+      if [ "$1" = "--update" ]; then extra+=(-Update "$2"); fi
+      if [ "$1" = "--keep" ]; then extra+=(-Keep "$2"); fi
+      shift 2
+    done
+    "$PWSH" -NoProfile -ExecutionPolicy Bypass -File "$(winpath "$ROOT/install.ps1")" "$(winpath "$T")" ${extra[@]+"${extra[@]}"} > "$T.out" 2>&1 || rc=$?
+  else bash "$ROOT/install.sh" "$T" "$@" > "$T.out" 2>&1 || rc=$?; fi
+  return $rc
 }
 fail() { echo "FAIL: $*"; exit 1; }
 
@@ -47,15 +57,65 @@ grep -q "원래 내용" "$T/AGENTS.md" || fail "user AGENTS content lost"
 grep -q "dev-process-light:begin" "$T/AGENTS.md" || fail "block not added"
 grep -q "@AGENTS.md" "$T/CLAUDE.md" || fail "CLAUDE.md"
 
+# 설치 기록: 셋(bash · PowerShell · kit_hash.py)이 같은 지문을 낸다
+ST="$T/.claude/skills/.light-kit"
+[ -f "$ST" ] || fail "no install record"
+if [ -n "$PY" ]; then
+  [ "$(grep '^installed .claude/skills/light-check ' "$ST" | cut -d' ' -f3)" = "$("$PY" -B "$ROOT/scripts/kit_hash.py" dir "$ROOT/kit/skills/light-check")" ] || fail "skill hash differs from kit_hash.py"
+  [ "$(grep '^installed AGENTS ' "$ST" | cut -d' ' -f3)" = "$("$PY" -B "$ROOT/scripts/kit_hash.py" block "$ROOT/kit/AGENTS.md")" ] || fail "block hash differs from kit_hash.py"
+fi
+
 echo "내 기록" >> "$T/dev-notes/NOW.md"
 printf '\n## 내 추가 규칙\n' >> "$T/AGENTS.md"
-echo "stale" > "$T/.claude/skills/light-check/SKILL.md"
+echo "stale" > "$T/.claude/skills/light-check/SKILL.md"           # 직접 고친 스킬 -- 말없이 덮지 않는다 (소유자 원칙 2026-10-20)
 echo "stale" > "$T/.claude/skills/data-light/SKILL.md"
-run
+rc=0; run || rc=$?
+[ "$rc" = 3 ] || { cat "$T.out"; fail "edited skills were not asked about (exit $rc)"; }
+grep -q "물어볼 것" "$T.out" && grep -q ".claude/skills/light-check" "$T.out" && grep -q ".claude/skills/data-light" "$T.out" || fail "ask list"
+[ "$(cat "$T/.claude/skills/light-check/SKILL.md")" = "stale" ] || fail "edited skill overwritten without asking"
 grep -q "내 기록" "$T/dev-notes/NOW.md" || fail "NOW.md overwritten"
 grep -q "내 추가 규칙" "$T/AGENTS.md" || fail "user section after block lost"
 [ "$(grep -c 'dev-process-light:begin' "$T/AGENTS.md")" = 1 ] || fail "block duplicated"
-grep -q "^name: light-check" "$T/.claude/skills/light-check/SKILL.md" || fail "skill not refreshed"
+rc=0; run --update light-check || rc=$?                            # 사용자: light-check 는 새 판으로
+[ "$rc" = 3 ] || fail "data-light still differs -- should still ask (exit $rc)"
+grep -q "^name: light-check" "$T/.claude/skills/light-check/SKILL.md" || fail "skill not refreshed after --update"
+ls "$T"/.light-backup/*/.claude/skills/light-check/SKILL.md >/dev/null 2>&1 || fail "no backup of the edited skill"
+rc=0; run --keep data-light || rc=$?                               # 사용자: data-light 는 지금 것을 둠
+[ "$rc" = 0 ] || { cat "$T.out"; fail "keep did not settle the difference (exit $rc)"; }
+[ "$(cat "$T/.claude/skills/data-light/SKILL.md")" = "stale" ] || fail "kept skill overwritten"
+rc=0; run || rc=$?
+[ "$rc" = 0 ] || fail "kept choice asked again (exit $rc)"
+rc=0; run --update data-light || rc=$?                              # 다시 새 판으로 (뒤의 시험은 새 판 그대로를 본다)
+[ "$rc" = 0 ] && grep -q "^name: data-light" "$T/.claude/skills/data-light/SKILL.md" || fail "update back to the kit"
+# 지난번에 설치한 그대로인 예전 판은 묻지 않고 새 판으로 (기록의 지문 = 지금 폴더)
+echo "old kit" >> "$T/.agents/skills/light-start/SKILL.md"
+if [ -n "$PY" ]; then
+  OLD="$("$PY" -B "$ROOT/scripts/kit_hash.py" dir "$T/.agents/skills/light-start")"
+  "$PY" - "$ST" "$OLD" <<'PYX'
+import sys
+p, h = sys.argv[1], sys.argv[2]
+lines = open(p, encoding="utf-8").read().splitlines()
+out = [(" ".join(l.split()[:2] + [h]) if l.startswith("installed .agents/skills/light-start ") else l) for l in lines]
+open(p, "w", encoding="utf-8", newline="\n").write("\n".join(out) + "\n")
+PYX
+  rc=0; run || rc=$?
+  [ "$rc" = 0 ] || { cat "$T.out"; fail "untouched old version was asked about (exit $rc)"; }
+  grep -q "old kit" "$T/.agents/skills/light-start/SKILL.md" && fail "untouched old version not refreshed"
+else
+  rc=0; run --update light-start || rc=$?
+fi
+# 규칙 블록 안을 고치면 묻는다
+"${PY:-python3}" - "$T/AGENTS.md" <<'PYX' 2>/dev/null || sed -i.bak 's/^## 작업 규칙: dev-process-light$/## 작업 규칙: dev-process-light (우리 규칙)/' "$T/AGENTS.md"
+import sys
+p = sys.argv[1]
+t = open(p, encoding="utf-8").read()
+open(p, "w", encoding="utf-8", newline="\n").write(t.replace("## 작업 규칙: dev-process-light\n", "## 작업 규칙: dev-process-light (우리 규칙)\n", 1))
+PYX
+rc=0; run || rc=$?
+[ "$rc" = 3 ] && grep -q "AGENTS (AGENTS.md" "$T.out" && grep -q "(우리 규칙)" "$T/AGENTS.md" || fail "edited rule block not asked about"
+rc=0; run --update AGENTS || rc=$?
+[ "$rc" = 0 ] && ! grep -q "(우리 규칙)" "$T/AGENTS.md" && grep -q "내 추가 규칙" "$T/AGENTS.md" || fail "rule block update"
+ls "$T"/.light-backup/*/AGENTS.block.md >/dev/null 2>&1 || fail "no backup of the edited block"
 cmp -s "$T/data/model.light.json" "$ROOT/kit/skills/data-light/examples/shop/data/model.light.json" || fail "user data model touched"
 [ "$(cat "$T/data/app.db")" = "not a real db" ] || fail "user db touched"
 diff -r "$ROOT/kit/skills/data-light" "$T/.claude/skills/data-light" >/dev/null || fail "data-light not refreshed"
@@ -66,6 +126,13 @@ head -c 3 "$T/AGENTS.md" | od -An -tx1 | grep -q "ef bb bf" && fail "BOM written
 if [ "$MODE" = bash ]; then
   sed 's/$/\r/' "$ROOT/kit/skills/data-light/scripts/datalight.py" > "$T/.data-light/datalight.py"
   bash "$ROOT/install.sh" "$T" | grep -q "짝 버전으로 바꿈" && fail "CRLF-only tool copy rewritten"
+fi
+# 줄바꿈이 CRLF 로 바뀐 AGENTS.md (Windows 편집기) 도 블록을 알아본다 -- 하나 더 붙이지 않는다
+if [ "$MODE" = bash ]; then
+  sed 's/$/\r/' "$T/AGENTS.md" > "$T/AGENTS.crlf" && mv "$T/AGENTS.crlf" "$T/AGENTS.md"
+  rc=0; run || rc=$?
+  [ "$rc" = 0 ] || { cat "$T.out"; fail "CRLF AGENTS.md asked about (exit $rc)"; }
+  [ "$(grep -c 'dev-process-light:begin' "$T/AGENTS.md")" = 1 ] || fail "CRLF AGENTS.md got a second block"
 fi
 # 예전 버전(0.8, 훅에 버전 줄 없음)의 데이터 검사 장치 → hook status 가 다르다고 하고 → hook install 뒤 최신 → 정본 저장이 훅을 통과
 if [ "$MODE" = bash ] && [ -n "$PY" ] && command -v git >/dev/null 2>&1; then
