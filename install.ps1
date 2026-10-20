@@ -37,17 +37,23 @@ function Remove-CR($b) {
   foreach ($x in $b) { if ($x -ne 13) { $ms.WriteByte($x) } }
   return ,$ms.ToArray()
 }
-function Get-TreeHash($dir) {
-  $root = (Resolve-Path -LiteralPath $dir).Path.TrimEnd('\', '/')
-  $rows = New-Object System.Collections.Generic.List[string]
-  Get-ChildItem -LiteralPath $root -Recurse -File -Force | ForEach-Object {
-    if ($_.Attributes -band [System.IO.FileAttributes]::ReparsePoint) { return }        # 심링크는 넣지 않는다 (bash find -type f 와 같게)
-    $rel = $_.FullName.Substring($root.Length).TrimStart('\', '/').Replace('\', '/')
-    $leaf = $rel.Split('/')[-1]
-    if ($leaf -clike '.light-kit*' -or $leaf -clike '*.pyc' -or $leaf -ceq '.DS_Store' -or $leaf -ceq 'Thumbs.db' -or $leaf -ceq 'desktop.ini' -or
-        ($rel.Split('/') -ccontains '__pycache__')) { return }
-    $rows.Add("$rel`t$(Get-Sha256Hex (Remove-CR ([System.IO.File]::ReadAllBytes($_.FullName))))")
+function Add-TreeRows($dir, $prefix, $rows) {
+  # 상대 경로는 이름을 이어 만든다 -- 뿌리 경로의 글자 수로 자르면 Windows 의 짧은 이름(RUNNER~1)이 풀린 경로에서 어긋난다
+  foreach ($e in @(Get-ChildItem -LiteralPath $dir -Force)) {
+    if ($e.Attributes -band [System.IO.FileAttributes]::ReparsePoint) { continue }       # 심링크(파일 · 폴더)는 넣지 않는다 (bash find -type f 와 같게)
+    $rel = if ($prefix) { "$prefix/$($e.Name)" } else { $e.Name }
+    if ($e.PSIsContainer) {
+      if ($e.Name -cne '__pycache__') { Add-TreeRows $e.FullName $rel $rows }
+      continue
+    }
+    $leaf = $e.Name
+    if ($leaf -clike '.light-kit*' -or $leaf -clike '*.pyc' -or $leaf -ceq '.DS_Store' -or $leaf -ceq 'Thumbs.db' -or $leaf -ceq 'desktop.ini') { continue }
+    $rows.Add("$rel`t$(Get-Sha256Hex (Remove-CR ([System.IO.File]::ReadAllBytes($e.FullName))))")
   }
+}
+function Get-TreeHash($dir) {
+  $rows = New-Object System.Collections.Generic.List[string]
+  Add-TreeRows $dir "" $rows
   $arr = $rows.ToArray()
   [Array]::Sort($arr, [StringComparer]::Ordinal)
   $text = -join ($arr | ForEach-Object { $_ + "`n" })
