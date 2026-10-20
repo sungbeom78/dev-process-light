@@ -39,7 +39,7 @@ by `data-light`, and then the light flow continues. The installer installs both.
 | full | dev-process-framework | data-expert-framework |
 | how the pair is pinned | this repo ships `data-light` **byte-for-byte at a pinned commit** in `kit/skills/data-light` ([`data-light.lock.json`](data-light.lock.json), updated with `scripts/update_data_light.py`) | git submodule |
 
-Current pair: **data-light 0.9.0** (data-expert-framework-light `e8dab41`).
+Current pair: **data-light 0.9.0** (data-expert-framework-light `701e50e`).
 Questions are asked once (the five lines in `NOW.md`), task cards carry a `데이터:` (data) line, one canonical file `data/model.light.json`
 feeds the ERD/spec/SQL (for Supabase including real row-level-security policies from `signup` and per-table `access`), `light-check` runs the `datalight.py verify` gate (design check, success goals, rule tests, fresh outputs, data-loss guard), `light-save` commits it as `데이터:`, and real data (`data/app.db`,
 source spreadsheets, `.env`) is never committed. Walkthrough: [`examples/club-dues/`](examples/club-dues/WALKTHROUGH.md) (Korean).
@@ -54,7 +54,9 @@ git clone --depth 1 https://github.com/sungbeom78/dev-process-light.git ~/dev-pr
 bash ~/dev-process-light/install.sh <your-project>
 # Windows PowerShell: powershell -ExecutionPolicy Bypass -File $HOME\dev-process-light\install.ps1 <your-project>
 ```
-The installer never overwrites existing `dev-notes/`, `data/` or your own `AGENTS.md` content; re-running only updates the skills (including the paired `data-light`).
+The installer never overwrites existing `dev-notes/`, `data/` or your own `AGENTS.md` content; re-running updates the skills (including the paired `data-light`) and the rule block.
+If you edited or deleted one of them, it is not overwritten or restored silently: the installer lists it under `[물어볼 것]` and exits 3 --
+re-run with `--update <name|all>` (old copy kept in `.claude/skills/.light-backup/`) or `--keep <name|all>` (PowerShell: `-Update` / `-Keep`).
 Then tell the agent: *"Start with light-resume."* Walkthrough: [`examples/my-homepage/`](examples/my-homepage/WALKTHROUGH.md) (Korean).
 
 The skills and notes are written in Korean; agents follow them in any language. Translations are welcome.

@@ -7,8 +7,8 @@
 
 지문:
   스킬 폴더 = sha256( 줄마다 "<상대 경로>\\t<sha256(파일 바이트에서 \\r 를 뺀 것)>\\n", 경로 순(바이트 순) )[:16]
-              (.light-kit* · __pycache__/ · *.pyc 는 뺀다)
-  규칙 블록 = sha256( 시작 줄부터 끝 줄까지, 줄마다 \\r 를 빼고 "\\n" 으로 이은 것 )[:16]
+              (.light-kit* · __pycache__/ · *.pyc · .DS_Store · Thumbs.db · desktop.ini · 심링크는 뺀다)
+  규칙 블록 = sha256( 시작 줄부터 끝 줄까지(둘 다 줄 머리), 줄마다 \\r 를 빼고 "\\n" 으로 이은 것 -- 맨 앞 BOM 은 뺀다 )[:16]
 
     python scripts/kit_hash.py dir <폴더>          # 폴더 지문
     python scripts/kit_hash.py block <AGENTS.md>   # 규칙 블록 지문
@@ -30,9 +30,12 @@ END = "<!-- dev-process-light:end -->"
 HEAD_LINE = "# dev-process-light 예전 판 지문 (scripts/kit_hash.py history --write) -- 설치기가 '손대지 않은 예전 판'을 알아본다"
 
 
+JUNK = {".DS_Store", "Thumbs.db", "desktop.ini"}    # OS 가 만드는 파일 -- 직접 고친 것으로 보지 않는다
+
+
 def _skip(rel: str) -> bool:
     name = rel.rsplit("/", 1)[-1]
-    return name.startswith(".light-kit") or name.endswith(".pyc") or "__pycache__" in rel.split("/")
+    return name.startswith(".light-kit") or name.endswith(".pyc") or name in JUNK or "__pycache__" in rel.split("/")
 
 
 def tree_hash(files: dict) -> str:
@@ -45,12 +48,12 @@ def tree_hash(files: dict) -> str:
 
 def dir_hash(path: Path) -> str:
     path = Path(path)
-    return tree_hash({p.relative_to(path).as_posix(): p.read_bytes() for p in path.rglob("*") if p.is_file()})
+    return tree_hash({p.relative_to(path).as_posix(): p.read_bytes() for p in path.rglob("*") if p.is_file() and not p.is_symlink()})
 
 
 def block_hash(text: str) -> str | None:
     out, on = [], False
-    for line in text.replace("\r", "").split("\n"):
+    for line in text.lstrip("\ufeff").replace("\r", "").split("\n"):
         if not on and line.startswith(BEGIN):
             on = True
         if on:

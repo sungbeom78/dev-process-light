@@ -71,7 +71,7 @@ echo "stale" > "$T/.claude/skills/light-check/SKILL.md"           # 직접 고�
 echo "stale" > "$T/.claude/skills/data-light/SKILL.md"
 rc=0; run || rc=$?
 [ "$rc" = 3 ] || { cat "$T.out"; fail "edited skills were not asked about (exit $rc)"; }
-grep -q "물어볼 것" "$T.out" && grep -q ".claude/skills/light-check" "$T.out" && grep -q ".claude/skills/data-light" "$T.out" || fail "ask list"
+grep -q "^ask .claude/skills/light-check " "$ST" && grep -q "^ask .claude/skills/data-light " "$ST" || fail "ask lines not recorded"   # 출력 말이 아닌 기록으로 (Windows 콘솔 글자)
 [ "$(cat "$T/.claude/skills/light-check/SKILL.md")" = "stale" ] || fail "edited skill overwritten without asking"
 grep -q "내 기록" "$T/dev-notes/NOW.md" || fail "NOW.md overwritten"
 grep -q "내 추가 규칙" "$T/AGENTS.md" || fail "user section after block lost"
@@ -79,12 +79,20 @@ grep -q "내 추가 규칙" "$T/AGENTS.md" || fail "user section after block los
 rc=0; run --update light-check || rc=$?                            # 사용자: light-check 는 새 판으로
 [ "$rc" = 3 ] || fail "data-light still differs -- should still ask (exit $rc)"
 grep -q "^name: light-check" "$T/.claude/skills/light-check/SKILL.md" || fail "skill not refreshed after --update"
-ls "$T"/.light-backup/*/.claude/skills/light-check/SKILL.md >/dev/null 2>&1 || fail "no backup of the edited skill"
+ls "$T"/.claude/skills/.light-backup/*/.claude/skills/light-check/SKILL.md >/dev/null 2>&1 || fail "no backup of the edited skill"
+[ -e "$T/.light-backup" ] && fail "backup at the project root (data hook · CI would check it)"
 rc=0; run --keep data-light || rc=$?                               # 사용자: data-light 는 지금 것을 둠
 [ "$rc" = 0 ] || { cat "$T.out"; fail "keep did not settle the difference (exit $rc)"; }
 [ "$(cat "$T/.claude/skills/data-light/SKILL.md")" = "stale" ] || fail "kept skill overwritten"
 rc=0; run || rc=$?
 [ "$rc" = 0 ] || fail "kept choice asked again (exit $rc)"
+grep -q "^ask " "$ST" && fail "ask line left after the choice"
+# 고른 것은 그 판에 대한 것 -- 새 판이 그 스킬을 또 바꾸면 다시 묻는다 (기록의 '그때 새 판' 지문을 옛것으로 바꿔 흉내)
+sed 's/^\(keep .claude\/skills\/data-light [0-9a-f-]*\) [0-9a-f]*$/\1 0000000000000000/' "$ST" > "$ST.x" && mv "$ST.x" "$ST"
+rc=0; run || rc=$?
+[ "$rc" = 3 ] || { cat "$T.out"; fail "keep for an older kit was not asked again (exit $rc)"; }
+rc=0; run --keep data-light || rc=$?
+[ "$rc" = 0 ] || fail "keep again"
 rc=0; run --update data-light || rc=$?                              # 다시 새 판으로 (뒤의 시험은 새 판 그대로를 본다)
 [ "$rc" = 0 ] && grep -q "^name: data-light" "$T/.claude/skills/data-light/SKILL.md" || fail "update back to the kit"
 # 지난번에 설치한 그대로인 예전 판은 묻지 않고 새 판으로 (기록의 지문 = 지금 폴더)
@@ -115,7 +123,17 @@ rc=0; run || rc=$?
 [ "$rc" = 3 ] && grep -q "AGENTS (AGENTS.md" "$T.out" && grep -q "(우리 규칙)" "$T/AGENTS.md" || fail "edited rule block not asked about"
 rc=0; run --update AGENTS || rc=$?
 [ "$rc" = 0 ] && ! grep -q "(우리 규칙)" "$T/AGENTS.md" && grep -q "내 추가 규칙" "$T/AGENTS.md" || fail "rule block update"
-ls "$T"/.light-backup/*/AGENTS.block.md >/dev/null 2>&1 || fail "no backup of the edited block"
+ls "$T"/.claude/skills/.light-backup/*/AGENTS.block.md >/dev/null 2>&1 || fail "no backup of the edited block"
+# 지운 스킬 · 지운 규칙 블록은 말없이 되살리지 않는다
+rm -rf "$T/.claude/skills/light-undo"
+rc=0; run || rc=$?
+[ "$rc" = 3 ] && [ ! -e "$T/.claude/skills/light-undo" ] && grep -q "^ask .claude/skills/light-undo - " "$ST" || { cat "$T.out"; fail "deleted skill not asked about (exit $rc)"; }
+rc=0; run --keep light-undo || rc=$?
+[ "$rc" = 0 ] && [ ! -e "$T/.claude/skills/light-undo" ] || fail "keep deleted skill"
+rc=0; run --update light-undo,light-save || rc=$?                    # 여럿은 쉼표로
+[ "$rc" = 0 ] && [ -f "$T/.claude/skills/light-undo/SKILL.md" ] || fail "update deleted skill back (comma list)"
+rc=0; run --update light-nope || rc=$?
+[ "$rc" = 2 ] || fail "unknown name accepted (exit $rc)"
 cmp -s "$T/data/model.light.json" "$ROOT/kit/skills/data-light/examples/shop/data/model.light.json" || fail "user data model touched"
 [ "$(cat "$T/data/app.db")" = "not a real db" ] || fail "user db touched"
 diff -r "$ROOT/kit/skills/data-light" "$T/.claude/skills/data-light" >/dev/null || fail "data-light not refreshed"
@@ -127,20 +145,29 @@ if [ "$MODE" = bash ]; then
   sed 's/$/\r/' "$ROOT/kit/skills/data-light/scripts/datalight.py" > "$T/.data-light/datalight.py"
   bash "$ROOT/install.sh" "$T" | grep -q "짝 버전으로 바꿈" && fail "CRLF-only tool copy rewritten"
 fi
-# 줄바꿈이 CRLF 로 바뀐 AGENTS.md (Windows 편집기) 도 블록을 알아본다 -- 하나 더 붙이지 않는다
+# 줄바꿈이 CRLF 로 바뀐 · BOM 이 붙은 AGENTS.md (Windows 편집기) 도 블록을 알아본다 -- 하나 더 붙이지 않는다
 if [ "$MODE" = bash ]; then
+  { printf '\357\273\277'; cat "$T/AGENTS.md"; } > "$T/AGENTS.bom" && mv "$T/AGENTS.bom" "$T/AGENTS.md"
+  rc=0; run || rc=$?
+  [ "$rc" = 0 ] || { cat "$T.out"; fail "BOM AGENTS.md asked about (exit $rc)"; }
+  [ "$(grep -c 'dev-process-light:begin' "$T/AGENTS.md")" = 1 ] || fail "BOM AGENTS.md got a second block"
   sed 's/$/\r/' "$T/AGENTS.md" > "$T/AGENTS.crlf" && mv "$T/AGENTS.crlf" "$T/AGENTS.md"
   rc=0; run || rc=$?
   [ "$rc" = 0 ] || { cat "$T.out"; fail "CRLF AGENTS.md asked about (exit $rc)"; }
   [ "$(grep -c 'dev-process-light:begin' "$T/AGENTS.md")" = 1 ] || fail "CRLF AGENTS.md got a second block"
 fi
-# 예전 버전(0.8, 훅에 버전 줄 없음)의 데이터 검사 장치 → hook status 가 다르다고 하고 → hook install 뒤 최신 → 정본 저장이 훅을 통과
+# 예전 버전(0.8, 훅에 버전 줄 없음 · .gitignore 줄은 넣어 두었다)의 데이터 검사 장치 → hook status 가 다르다고 하고 → hook install 뒤 최신 → 정본 저장이 훅을 통과
 if [ "$MODE" = bash ] && [ -n "$PY" ] && command -v git >/dev/null 2>&1; then
   G="$(mktemp -d)/repo"; mkdir -p "$G"; git -C "$G" init -q
   bash "$ROOT/install.sh" "$G" >/dev/null
   DL="$G/.claude/skills/data-light/scripts/datalight.py"
   mkdir -p "$G/.git/hooks"; printf '#!/bin/sh\n# data-light pre-commit (datalight.py hook install)\nexit 0\n' > "$G/.git/hooks/pre-commit"
   mkdir -p "$G/.data-light"; cp "$DL" "$G/.data-light/datalight.py"
+  "$PY" -B - "$DL" > "$G/.gitignore" <<'PYEOF'
+import importlib.util, sys
+spec = importlib.util.spec_from_file_location("dl", sys.argv[1]); m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m)
+print("\n".join(m.GITIGNORE_LINES))
+PYEOF
   (cd "$G" && "$PY" -B "$DL" hook status >/dev/null) && fail "old hook reported as current"
   (cd "$G" && "$PY" -B "$DL" hook install --no-ci >/dev/null) || fail "hook install"
   (cd "$G" && "$PY" -B "$DL" hook status >/dev/null) || fail "hook not current after install"

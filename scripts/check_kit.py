@@ -353,7 +353,7 @@ if _miss:
 import shutil as _sh  # noqa: E402
 import subprocess as _sp  # noqa: E402
 if _sh.which("bash"):
-    _r = _sp.run(["bash", "-n", str(ROOT / "install.sh")], capture_output=True, text=True, encoding="utf-8", errors="replace")
+    _r = _sp.run(["bash", "-n", "install.sh"], cwd=str(ROOT), capture_output=True, text=True, encoding="utf-8", errors="replace")   # 파일 이름 + cwd (WSL bash)
     if _r.returncode != 0:
         errors.append("install.sh 문법: " + (_r.stderr or _r.stdout).strip()[:200])
 for _f in ("install.sh", "install.ps1"):

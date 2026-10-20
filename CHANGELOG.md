@@ -7,9 +7,12 @@
   `[물어볼 것]` 으로 알린 뒤 3 으로 끝난다. 사용자가 고른 대로 `--update <이름|all>`(지금 것은 `.light-backup/` 에) · `--keep <이름|all>`
   (PowerShell 은 `-Update` · `-Keep`). 기록은 `.claude/skills/.light-kit` -- 고른 것은 그대로인 동안 다시 묻지 않는다
 - 지문은 셋이 같은 셈법 (`install.sh` · `install.ps1` · `scripts/kit_hash.py`, 줄바꿈 CRLF 는 같은 것으로). `check_kit` 이 `kit/.history` 가 지금 판을 담는지 본다
-- bash 설치기가 CRLF 로 바뀐 `AGENTS.md` 의 블록을 알아보지 못하고 하나 더 붙이던 것
+- bash 설치기가 CRLF 로 바뀐 `AGENTS.md` 의 블록을 갱신하지 못하던 것 ('갱신'이라고 알리고 예전 블록이 그대로였다). BOM 이 붙은 `AGENTS.md` 도 알아본다
+- 지운 스킬 · 지운 규칙 블록도 말없이 되살리지 않고 묻는다. `--keep` 은 그 판에 대한 것 -- 새 판이 또 바꾸면 다시 묻는다. 아직 묻지 않은 것은 기록에 `ask` 줄로
+- 백업은 `.claude/skills/.light-backup/` (데이터 검사 · CI 가 보지 않는 곳). 백업하지 못하면 바꾸지 않는다. 이름은 쉼표로 여럿 · 모르는 이름은 멈춘다
+- 지문은 OS 가 만드는 파일(`.DS_Store` · `Thumbs.db` · `desktop.ini`)과 심링크를 뺀다 (셋이 같게). PowerShell 은 UTF-8 이 아닌 `AGENTS.md` 를 바꾸지 않고 묻는다
 - `light-resume` '다시 설치한 뒤': 설치기 · `hook install` 의 '물어볼 것'을 사용자에게 보이고 고르게 한다 (지운 CI 파일을 말없이 두지 않는다)
-- 짝 스킬 data-light 를 **0.9.0** (data-expert-framework-light `e8dab41`) 으로 -- `hook install` 도 직접 고친 CI 파일 · 지운 `.gitignore` 줄을 묻는다
+- 짝 스킬 data-light 를 **0.9.0** (data-expert-framework-light `701e50e`) 으로 -- `hook install` 도 직접 고친 CI 파일 · 지운 `.gitignore` 줄을 묻는다
 
 ## 0.15.1 -- 2026-10-20
 - 짝 스킬 data-light 를 **0.8.1** (data-expert-framework-light `fbeb827`) 으로 -- 화면 틀 1.3.1 (긴 경로의 링크 검사), 틀 지문이 Windows 에서도 같게
