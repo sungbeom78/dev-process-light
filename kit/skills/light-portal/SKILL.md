@@ -7,7 +7,8 @@ description: 지금까지의 기록(지금 작업·다음 할 일·기능·데�
 
 `dev-notes/` 의 기록, git 저장 목록, 데이터 설계(`data/model.light.json`)로 **개발 관리 사이트**를 만든다.
 쪽과 주소는 전문판(dev-process-framework)과 같고, 가벼운 판은 그중 5쪽이다. 서버도 로그인도 포트도 없고, 내 컴퓨터에서 브라우저로
-`dev-notes/outputs/site/index.html` 파일을 연다. 인터넷에 올리지 않는다. 화면 틀은 짝 스킬 `data-light` 에 들어 있는 것을 같이 쓴다.
+`dev-notes/outputs/site/index.html` 파일을 연다. 이 사이트는 인터넷에 올리지 않는다 -- 밖에서도 보게 하려면 사용자에게 묻고 **공개본**을 따로 만든다
+(아래 '공개'). 화면 틀은 짝 스킬 `data-light` 에 들어 있는 것을 같이 쓴다.
 
 ## 어디에 만들지 (처음 한 번만 묻는다)
 `dev-notes/NOW.md` 의 `## 설정` 에서 `기록 보기 페이지:` 를 본다.
@@ -23,7 +24,7 @@ description: 지금까지의 기록(지금 작업·다음 할 일·기능·데�
   ```
   답을 `## 설정` 에 적고(`- 기록 보기 페이지: dev-notes/outputs/site` 또는 `만들지 않음`),
   `DECISIONS.md` 에 `[사용자]` 결정으로 답 그대로 한 줄 남긴다.
-- **사이트로 공개되는 폴더(예: GitHub Pages 로 올리는 폴더) 안에는 만들지 않는다.** 기록이 인터넷에 보이게 된다.
+- **사이트로 공개되는 폴더(예: GitHub Pages 로 올리는 폴더) 안에는 만들지 않는다.** 기록이 인터넷에 보이게 된다 (공개는 아래 '공개'로만).
 
 ## 만들기
 ```
@@ -49,6 +50,30 @@ python .claude/skills/light-portal/portal_tool.py build --out <설정의 위치>
 | 10 파일 | 기능 지도(기능 → 쓰는 파일 → 표, 없는 파일은 빨간 줄), 함께 쓰는 파일, 구성, 쓰는 도구와 버전(`package.json`·`requirements.txt`·`pyproject.toml`·`.python-version`·`.nvmrc`·HTML 의 CDN 주소에서 직접 읽음), 지도에 있는데 없는 파일 · 지도에 없는 파일, 이름표, 기록 파일, 만든 파일(설명서 · 데이터 설명서) |
 
 사이트는 **보기만** 한다. 고칠 때는 기록(`dev-notes/`) · 정본(`data/model.light.json`)을 고치고 다시 만든다.
+
+## 공개 -- 내 사이트 아래 · GitHub Pages (처음 한 번 묻는다)
+`## 설정` 의 `개발 페이지 공개:` 를 본다. `(아직 정하지 않음)` 이면 사이트를 처음 만든 뒤 한 번 묻는다 (인터넷에 올리는 일 -- 규칙 7):
+```
+이 기록 사이트를 인터넷에서도 볼 수 있게 할까요? 공개하면 주소를 아는 누구나 기능 · 데이터 설계 · 작업 기록 · 결정을 봐요
+(비밀번호 · 실제 데이터 · 이메일 · 내 컴퓨터 주소는 담지 않아요).
+ 1. 만드는 홈페이지 아래에 -- <내 사이트 주소>/dev-process-light/ (만드는 것이 웹 페이지일 때). 사이트로 올라가는 폴더를 알려 주세요 (맨 위 폴더면 . , 아니면 public · docs 등)
+ 2. GitHub Pages 로 -- https://<계정>.github.io/<저장소>/dev-process-light/ (웹 페이지가 없을 때, GitHub 저장소가 있어야 해요)
+ 3. 공개하지 않기 (잘 모르겠으면 이것 -- 나중에 바꿀 수 있어요)
+```
+답대로 정하고(`--quote` 에 답 그대로), `## 설정` 에 `- 개발 페이지 공개: 홈페이지 아래 (<폴더>)` · `GitHub Pages` · `안 함`, `DECISIONS.md` 에 `[사용자]` 로:
+```
+python .claude/skills/light-portal/portal_tool.py publish --set service --web-dir <폴더> --by user --quote "<사용자 답 그대로>"
+python .claude/skills/light-portal/portal_tool.py publish --set pages --by user --quote "<사용자 답 그대로>"
+python .claude/skills/light-portal/portal_tool.py publish --set none --by user --quote "<사용자 답 그대로>"
+python .claude/skills/light-portal/portal_tool.py publish            # 정한 대로 올린다 (light-save 가 저장할 때마다)
+```
+- **같은 쪽을 두 번 만들지 않는다**: 5쪽은 `dev-process-light/` 에 한 번만, `data-expert-framework-light/` 에는 같은 주소로 가는 안내 쪽만 생긴다
+  (`datalight.py site` · `publish` 는 이 프로젝트에서 멈춘다 -- 데이터 쪽은 이 사이트에 함께 있다).
+- 1번: 그 폴더의 `dev-process-light/` · `data-expert-framework-light/` 에 쓴다 -- 사이트를 올리면(배포) `<내 사이트 주소>/dev-process-light/`. 이 두 폴더도 저장한다.
+  같은 이름의 남의 폴더가 있으면 덮지 않고 멈춘다.
+- 2번: 저장소의 `gh-pages` 가지에 올린다 (지금 폴더 · 저장은 그대로). 처음 한 번 GitHub 저장소 **Settings → Pages** 에서 'Deploy from a branch' · `gh-pages` · `/ (root)`
+  로 켜도록 안내한다. 비공개 저장소는 유료 요금제에서만 되고, 켜면 누구나 본다.
+- 바뀐 것이 없으면 아무것도 쓰지 않는다. 공개본에는 '공개본 · 만든 때' 가 보이고, 검색 엔진에는 나오지 않게 한다 (noindex).
 
 ## 고칠 곳 찾기 (`where`)
 문제가 나면 코드 전체를 훑기 전에 기능 지도에서 고칠 곳부터 찾는다 -- 읽는 파일이 줄어 빠르고 다른 기능을 덜 건드린다.

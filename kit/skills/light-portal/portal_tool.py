@@ -244,7 +244,8 @@ def _project_files(root: Path) -> list:
             out += [f if rel == "." else f"{rel}/{f}" for f in sorted(files)]
             if len(out) >= MAX_WALK:
                 break
-    return sorted(f for f in out if f and not any(part in PRUNE for part in f.split("/")))[:MAX_WALK]
+    pub = tuple(f[: -len(".outputs-publish.json")] for f in out if f.endswith("/.outputs-publish.json"))   # 공개본 폴더 (사이트가 만든 파일 -- 기능 지도 밖)
+    return sorted(f for f in out if f and not any(part in PRUNE for part in f.split("/")) and not (pub and f.startswith(pub)))[:MAX_WALK]
 
 
 def system_map(root: Path, notes: dict, data: dict | None) -> dict:
@@ -311,7 +312,7 @@ def where(root: Path, query: str) -> dict:
 
 
 # ---------------------------------------------------------------- 개발 관리 사이트 (가벼운 판 5쪽 -- 파일로 연다, 서버 · 포트 없음)
-VERSION = "0.16.0"                       # dev-process-light 판 (CHANGELOG 맨 위와 같다 -- check_kit 가 본다)
+VERSION = "0.17.0"                       # dev-process-light 판 (CHANGELOG 맨 위와 같다 -- check_kit 가 본다)
 SITE_OUT = "dev-notes/outputs/site"      # 사양 v1.1 의 dev-light 자리 -- dev-notes/outputs/ 에 .gitignore(*) 를 둔다
 MAX_LOG_PAGES = 60                       # 기능별 기록 쪽은 최근 것만 (나머지는 목록에 이름만)
 MAX_FLOW = 400
@@ -739,7 +740,7 @@ def site_pages(root: Path, dl, mark: str, now: str) -> tuple:
     return pages, subs, menu_subs, _scrub(index), project
 
 
-def build_site(root: Path, out=None) -> dict:
+def build_site(root: Path, out=None, hosting=None) -> dict:
     """개발 관리 사이트 (가벼운 판 5쪽) -- dev-notes/outputs/site/index.html 을 파일로 연다. 서버 · 포트 · 로그인 없음.
     화면 틀과 쓰기는 짝 스킬 data-light 의 것 (전문판 화면 틀의 MIT 사본), 2 · 4쪽은 data-light 의 생성기."""
     import secrets
@@ -752,11 +753,24 @@ def build_site(root: Path, out=None) -> dict:
     pages, subs, menu_subs, index, project = site_pages(root, dl, mark, now)
     try:
         r = dl.write_site(site, root, pages, framework="dev-light", framework_version=VERSION, project=project, mark=mark, now=now,
-                          index=index, subs=subs, menu_subs=menu_subs, default_site=dflt)
+                          index=index, subs=subs, menu_subs=menu_subs, default_site=dflt, **({"hosting": hosting} if hosting else {}))
     except ValueError as e:
         raise SiteError(str(e)) from None
     r["uri"] = (site / "index.html").as_uri()
     return r
+
+
+def publish(root: Path, push: bool = True) -> dict:
+    """공개본 -- 정한 방식(dev-notes/outputs-publish.json)대로: <서비스 주소>/dev-process-light/ (사이트 폴더) 또는 GitHub Pages.
+    5쪽은 dev-process-light/ 에 한 번, data-expert-framework-light/ 에는 안내 쪽만 (같은 쪽을 두 번 만들지 않는다). 쓰기는 짝 스킬 data-light 의 것."""
+    root = Path(root).resolve()
+    dl = _datalight()
+    if not hasattr(dl, "publish"):
+        raise SiteError("짝 스킬 data-light 가 오래됐습니다 (0.10.0 부터 공개) -- dev-process-light 를 다시 설치합니다")
+    try:
+        return dl.publish(root, "dev-light", lambda out: build_site(root, out, hosting="static"), push=push)
+    except ValueError as e:
+        raise SiteError(str(e)) from None
 
 
 def _shortcut(root: Path, file: Path, site: Path) -> str | None:
@@ -846,11 +860,44 @@ def main(argv=None) -> int:
     b.add_argument("--root", default=".")
     b.add_argument("--out", help="사이트 폴더 (기본 dev-notes/outputs/site). 예전 설정처럼 .html 파일이면 그 파일은 사이트로 가는 바로가기")
     b.add_argument("--legacy", action="store_true", help="예전 기록 보기 페이지 (HTML 파일 하나, 기본 dev-notes/portal.html)")
+    q = sub.add_parser("publish", help="공개본 -- <서비스 주소>/dev-process-light/ (만드는 사이트 아래) 또는 GitHub Pages. 방식은 사용자 답으로 (--set)")
+    q.add_argument("--root", default=".")
+    q.add_argument("--set", default=None, choices=["service", "pages", "none"])
+    q.add_argument("--web-dir", default=None, help="service: 사이트가 주소 뿌리(/)로 그대로 올리는 폴더 (프로젝트 기준, 예 . · public · docs)")
+    q.add_argument("--remote", default="origin")
+    q.add_argument("--by", default=None, choices=["user"])
+    q.add_argument("--quote", default=None)
+    q.add_argument("--status", action="store_true")
+    q.add_argument("--dry-run", action="store_true")
     w = sub.add_parser("where", help="고칠 곳 찾기 -- 오류 글·파일·화면·표 이름 → 기능 · 파일 · 표")
     w.add_argument("query", nargs="+")
     w.add_argument("--root", default=".")
     w.add_argument("--json", action="store_true")
     a = ap.parse_args(argv)
+    if a.cmd == "publish":
+        root = Path(a.root).resolve()
+        try:
+            dl = _datalight()
+            if not hasattr(dl, "set_publish"):
+                raise SiteError("짝 스킬 data-light 가 오래됐습니다 (0.10.0 부터 공개) -- dev-process-light 를 다시 설치합니다")
+            if a.set:
+                d = dl.set_publish(root, "dev-light", a.set, by=a.by, quote=a.quote, web_dir=a.web_dir, remote=a.remote)
+                print(f"[OK] 공개 방식: {dl.PUBLISH_MODES[a.set]} -- 설정 dev-notes/outputs-publish.json (다음 저장에 넣습니다)")
+                for x in d["warnings"]:
+                    print(f"[주의] {x}")
+                return 0
+            if a.status:
+                conf = dl.load_publish(root, "dev-light")
+                print("공개: " + (dl.PUBLISH_MODES.get(conf.get("mode")) or "아직 정하지 않음 -- 사용자에게 묻습니다")
+                      + (f" · 폴더 {conf['web_dir']}/dev-process-light/" if conf.get("mode") == "service" else ""))
+                return 0
+            r = publish(root, push=not a.dry_run)
+        except (SiteError, ValueError, OSError) as e:
+            print(f"[멈춤] 공개하지 않았습니다: {e}")
+            return 1
+        for line in dl.publish_lines(r, "dev-light", cmd="portal_tool.py publish"):
+            print(line)
+        return 0 if r.get("state") in ("written", "same", "pushed", "ready", "off") else (2 if r.get("state") == "unset" else 1)
     if a.cmd == "where":
         r = where(Path(a.root).resolve(), " ".join(a.query))
         if a.json:

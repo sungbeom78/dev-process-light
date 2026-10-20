@@ -171,6 +171,22 @@ with _tempfile.TemporaryDirectory() as _d:
         errors.append("light-portal 사이트: 4 데이터 쪽을 data-light 에서 받지 못함")
     if [x.get("id") for x in _pg["business"]["body"]["sections"]][:2] != ["features", "works"]:
         errors.append("light-portal 사이트: 2 업무 설명이 기능 + 하는 일이 아님")
+    # 공개 (0.17): 사이트 아래 -- dev-process-light/ 에 5쪽 한 번, data-expert-framework-light/ 에는 안내 쪽만 (같은 쪽을 두 번 만들지 않는다)
+    _dlm = portal_tool._datalight()
+    _dlm.set_publish(_root, "dev-light", "service", by="user", quote="(점검) 홈페이지 아래로", web_dir="site")
+    _pub = portal_tool.publish(_root)
+    _pd, _pp = _root / "site" / "dev-process-light", _root / "site" / "data-expert-framework-light"
+    if _pub.get("state") != "written" or not (_pd / "index.html").is_file() or not (_pd / "assets" / "shell.js").is_file():
+        errors.append(f"light-portal 공개: 홈페이지 아래 공개본을 쓰지 못함 ({_pub.get('state')})")
+    elif _json.loads((_pd / "data" / "site.json").read_text(encoding="utf-8")).get("hosting") != "static":
+        errors.append("light-portal 공개: 공개본이 사이트 서버를 찾는다 (hosting static 아님)")
+    _pf = sorted(x.relative_to(_pp).as_posix() for x in _pp.rglob("*") if x.is_file()) if _pp.is_dir() else []
+    if not _pf or any(not (f.endswith("index.html") or f == ".outputs-publish.json") for f in _pf):
+        errors.append(f"light-portal 공개: data-expert-framework-light/ 가 안내 쪽만이 아님 ({_pf[:5]})")
+    if portal_tool.publish(_root).get("state") != "same":
+        errors.append("light-portal 공개: 바뀐 것이 없는데 공개본을 다시 씀")
+    if any(f.startswith("site/") for f in portal_tool._project_files(_root)):
+        errors.append("light-portal 공개: 공개본 폴더가 '기능 지도에 없는 파일'로 보임")
     (_root / "data" / "model.light.json").unlink()
     portal_tool.build(_root)
     if _json.loads((_site / "data" / "data.json").read_text(encoding="utf-8"))["body"]["sections"][0]["kind"] != "empty":

@@ -73,7 +73,7 @@ AI는 설명서의 **따라 하기를 실제로 해 보고** 저장한 뒤, 바�
 | 전문판 | dev-process-framework | data-expert-framework |
 | 짝을 묶는 법 | 이 저장소가 `data-light` 를 **정해 둔 커밋 그대로** `kit/skills/data-light` 에 담아 함께 설치 ([`data-light.lock.json`](data-light.lock.json)) | 전문판은 서브모듈로 고정 |
 
-지금 짝 버전: **data-light 0.9.0** (data-expert-framework-light `701e50e`).
+지금 짝 버전: **data-light 0.10.0** (data-expert-framework-light `6b498da`).
 
 어떻게 이어지나요:
 - **질문은 한 번만** -- 누가 쓰나·로그인·올리는 곳·개인정보는 `NOW.md` 의 다섯 줄에 한 번 적고, 어느 스킬도 다시 묻지 않습니다.
