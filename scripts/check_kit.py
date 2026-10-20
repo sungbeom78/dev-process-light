@@ -187,6 +187,13 @@ with _tempfile.TemporaryDirectory() as _d:
         errors.append("light-portal 공개: 바뀐 것이 없는데 공개본을 다시 씀")
     if any(f.startswith("site/") for f in portal_tool._project_files(_root)):
         errors.append("light-portal 공개: 공개본 폴더가 '기능 지도에 없는 파일'로 보임")
+    if (_pd / "assets" / "shell.js").read_bytes() != (ROOT / "kit" / "skills" / "data-light" / "site" / "shell" / "assets" / "shell.js").read_bytes():
+        errors.append("light-portal 공개: 공개본의 화면 틀 프로그램이 바뀜 (주소 지우기가 코드를 건드림)")
+    (_root / "src").mkdir(exist_ok=True)
+    (_root / "src" / "app.js").write_text("// app\n", encoding="utf-8")
+    (_root / "src" / ".outputs-publish.json").write_text('{"outputs_publish": 1, "hashes": {}}', encoding="utf-8")   # 판 이름이 아닌 폴더의 표시
+    if "src/app.js" not in portal_tool._project_files(_root):
+        errors.append("light-portal 공개: 판 이름이 아닌 폴더가 표시 파일 하나로 기능 지도에서 숨음")
     (_root / "data" / "model.light.json").unlink()
     portal_tool.build(_root)
     if _json.loads((_site / "data" / "data.json").read_text(encoding="utf-8"))["body"]["sections"][0]["kind"] != "empty":

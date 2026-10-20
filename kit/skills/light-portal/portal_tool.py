@@ -49,6 +49,36 @@ def _git(root: Path, *args: str) -> str:
     return r.stdout.rstrip() if r.returncode == 0 else ""      # 앞 공백은 남긴다 (git status 의 " M 파일")
 
 
+PUB_NAMES = ("dev-process-light", "data-expert-framework-light")      # 공개본 폴더 이름 (판 이름)
+
+
+def _pub_dirs(root: Path) -> list:
+    """서비스 방식으로 공개한 폴더 (공개 설정에서) -- 사이트의 저장 목록 · 저장 안 한 변경에서 뺀다 (공개본을 저장할 때마다 다음 공개본이 또 바뀌지 않게)."""
+    out = []
+    for rel, tops in (("dev-notes/outputs-publish.json", PUB_NAMES), ("data/outputs-publish.json", PUB_NAMES[1:])):
+        try:
+            d = json.loads((root / rel).read_text(encoding="utf-8"))
+        except (OSError, UnicodeDecodeError, ValueError):
+            continue
+        if isinstance(d, dict) and d.get("mode") == "service" and isinstance(d.get("web_dir"), str):
+            base = d["web_dir"].strip("/")
+            out += [("" if base in ("", ".") else base + "/") + t + "/" for t in tops]
+    return list(dict.fromkeys(out))
+
+
+def _saves_and_dirty(root: Path) -> tuple:
+    """저장 목록(최근 80)과 저장 안 한 변경 -- 공개본 폴더만 바꾼 저장 · 공개본 폴더의 변경은 뺀다."""
+    pub = _pub_dirs(root)
+    spec = (["--", "."] + [f":(exclude){x}" for x in pub]) if pub else []
+    saves = []
+    for line in _git(root, "log", "-80", "--format=%h%x00%cI%x00%s", *spec).splitlines():
+        h, when, msg = (line.split("\x00") + ["", ""])[:3]
+        saves.append({"hash": h, "at": when, "msg": msg, "kind": next((k for k in KINDS if msg.startswith(k + ":")), "")})
+    dirty = [ln[3:] for ln in _git(root, "status", "--porcelain", *spec).splitlines()
+             if ln[3:] and not ln[3:].startswith(("dev-notes/portal", "dev-notes/outputs", *pub))]
+    return saves, dirty
+
+
 def _project_name(now: str, root: Path) -> str:
     m = re.search(r"## 이 프로젝트는\s*\n+([^\n#<][^\n]*)", now or "")
     line = (m.group(1).strip() if m else "") or root.name
@@ -244,7 +274,9 @@ def _project_files(root: Path) -> list:
             out += [f if rel == "." else f"{rel}/{f}" for f in sorted(files)]
             if len(out) >= MAX_WALK:
                 break
-    pub = tuple(f[: -len(".outputs-publish.json")] for f in out if f.endswith("/.outputs-publish.json"))   # 공개본 폴더 (사이트가 만든 파일 -- 기능 지도 밖)
+    # 공개본 폴더 (사이트가 만든 파일 -- 기능 지도 밖): 공개 설정의 폴더 + 판 이름 폴더의 표시. 다른 이름의 폴더는 표시가 있어도 숨기지 않는다
+    pub = tuple(_pub_dirs(root)) + tuple(f[: -len(".outputs-publish.json")] for f in out if f.endswith("/.outputs-publish.json")
+                                         and f.split("/")[-2] in PUB_NAMES)
     return sorted(f for f in out if f and not any(part in PRUNE for part in f.split("/")) and not (pub and f.startswith(pub)))[:MAX_WALK]
 
 
@@ -312,7 +344,7 @@ def where(root: Path, query: str) -> dict:
 
 
 # ---------------------------------------------------------------- 개발 관리 사이트 (가벼운 판 5쪽 -- 파일로 연다, 서버 · 포트 없음)
-VERSION = "0.17.0"                       # dev-process-light 판 (CHANGELOG 맨 위와 같다 -- check_kit 가 본다)
+VERSION = "0.17.1"                       # dev-process-light 판 (CHANGELOG 맨 위와 같다 -- check_kit 가 본다)
 SITE_OUT = "dev-notes/outputs/site"      # 사양 v1.1 의 dev-light 자리 -- dev-notes/outputs/ 에 .gitignore(*) 를 둔다
 MAX_LOG_PAGES = 60                       # 기능별 기록 쪽은 최근 것만 (나머지는 목록에 이름만)
 MAX_FLOW = 400
@@ -480,12 +512,7 @@ def site_pages(root: Path, dl, mark: str, now: str) -> tuple:
     flows = flow_rows(root)
     flogs = feature_logs(root)
     decs = decisions(notes["DECISIONS"] or "")
-    saves = []
-    for line in _git(root, "log", "-80", "--format=%h%x00%cI%x00%s").splitlines():
-        h, when, msg = (line.split("\x00") + ["", ""])[:3]
-        saves.append({"hash": h, "at": when, "msg": msg, "kind": next((k for k in KINDS if msg.startswith(k + ":")), "")})
-    dirty = [ln[3:] for ln in _git(root, "status", "--porcelain").splitlines()
-             if ln[3:] and not ln[3:].startswith(("dev-notes/portal", "dev-notes/outputs"))]
+    saves, dirty = _saves_and_dirty(root)
     project = _short_name(_project_name(notes["NOW"] or "", root))
     fw = dict(framework="dev-light", framework_version=VERSION, mark=mark, now=now)
 
@@ -799,13 +826,7 @@ def collect(root: Path, out: Path) -> dict:
             text = p.read_text(encoding="utf-8", errors="replace")
             feature_logs.append({"feature": p.parent.name, "date": p.stem,
                                  "text": text if len(text) <= 60000 else text[:60000] + "\n\n… (잘림 -- 파일을 열어 본다)"})
-    saves = []
-    for line in _git(root, "log", "-80", "--format=%h%x00%cI%x00%s").splitlines():
-        h, when, msg = (line.split("\x00") + ["", ""])[:3]
-        kind = next((k for k in KINDS if msg.startswith(k + ":")), "")
-        saves.append({"hash": h, "at": when, "msg": msg, "kind": kind})
-    dirty = [ln[3:] for ln in _git(root, "status", "--porcelain").splitlines()
-             if ln[3:] and not ln[3:].startswith(("dev-notes/portal", "dev-notes/outputs"))]
+    saves, dirty = _saves_and_dirty(root)
     manual = root / "manual" / "index.html"
     manual_href = _rel(manual, out) if manual.is_file() else None
     data = data_summary(root, out)

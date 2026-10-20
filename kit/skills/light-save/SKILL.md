@@ -53,9 +53,10 @@ description: 단계가 끝날 때마다(기획 합의·만들기 한 덩어리·
      3 으로 끝나며 `물어볼 것:` 이 나오면(예: 직접 고친 CI 파일) 사용자에게 그대로 보이고 고른 대로 다시 (`--update ci` · `--keep ci`).
 6. 기록 보기 페이지(개발 관리 사이트) -- `## 설정` 의 `기록 보기 페이지:` 가 경로면 `light-portal` 로 다시 만든다 (만들지 않음이면 건너뜀).
    도구가 `.gitignore` 에 줄을 더했다고 알리면(처음 만들 때) 그 `.gitignore` 를 바로 `정리: 기록 보기 페이지는 저장하지 않음` 으로 저장한다.
-   `개발 페이지 공개:` 가 `홈페이지 아래` · `GitHub Pages` 면 이어서 `portal_tool.py publish` (light-portal '공개'). 홈페이지 아래면 바뀐 공개본 폴더
-   (`<폴더>/dev-process-light/` · `<폴더>/data-expert-framework-light/`)를 `정리: 개발 페이지 공개본` 으로 저장하고 (push 설정이 `예` 면 올린다),
-   GitHub Pages 면 도구가 `gh-pages` 가지에 올린다. `(아직 정하지 않음)` 이면 light-portal '공개'대로 한 번 묻는다. 실패하면 이유를 알리고 저장은 그대로 둔다.
+   `개발 페이지 공개:` 가 `홈페이지 아래` · `GitHub Pages` 면 이어서 `portal_tool.py publish` (light-portal '공개'). 홈페이지 아래면 바뀐 공개본 폴더만
+   따로 저장한다 -- 기록(LOG · 목록)을 더 쓰는 저장이 아니라 `git add <폴더>/dev-process-light <폴더>/data-expert-framework-light`
+   + `git commit -m "정리: 개발 페이지 공개본"` 한 번 (push 설정이 `예` 면 올린다). GitHub Pages 면 도구가 `gh-pages` 가지에 올린다.
+   `(아직 정하지 않음)` 이거나 그 줄이 없으면 light-portal '공개'대로 한 번 묻는다. 실패하면 이유를 알리고 저장은 그대로 둔다.
 7. 사용자에게 한 줄로 알린다: "저장했습니다: 기능: 할 일 목록 - 입력과 목록 (되돌아올 수 있는 지점)" + 올렸으면 "· 인터넷 저장소에도 올림"
 8. 설명서를 만들거나 고쳤으면 바로 이어서 **채팅에 그대로 보여 준다** (`light-manual` 의 "저장 후 채팅에 보여 주기").
 
