@@ -22,7 +22,14 @@ run() {   # run [--update X] [--keep X] -- 끝난 코드를 그대로 (3 = 물�
   else bash "$ROOT/install.sh" "$T" "$@" > "$T.out" 2>&1 || rc=$?; fi
   return $rc
 }
-fail() { echo "FAIL: $*"; exit 1; }
+fail() {
+  echo "FAIL: $*"
+  if [ -n "${GITHUB_ACTIONS:-}" ]; then    # CI 로그를 못 열 때도 주석으로 보인다 (마지막 설치 출력 함께)
+    echo "::error::FAIL ($MODE): $*"
+    [ -f "$T.out" ] && echo "::error::last install output ($MODE): $(tail -n 25 "$T.out" | tr -d '\r' | sed 's/%/%25/g' | awk '{ printf "%s%%0A", $0 }')"
+  fi
+  exit 1
+}
 
 printf '# 내 규칙\n원래 내용\n' > "$T/AGENTS.md"
 run
