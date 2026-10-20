@@ -352,10 +352,30 @@ if _miss:
     errors.append("kit/.history 에 지금 판의 지문이 없다 -- python scripts/kit_hash.py history --write: " + ", ".join(_miss[:4]))
 import shutil as _sh  # noqa: E402
 import subprocess as _sp  # noqa: E402
-if _sh.which("bash"):
-    _r = _sp.run(["bash", "-n", "install.sh"], cwd=str(ROOT), capture_output=True, text=True, encoding="utf-8", errors="replace")   # 파일 이름 + cwd (WSL bash)
-    if _r.returncode != 0:
-        errors.append("install.sh 문법: " + (_r.stderr or _r.stdout).strip()[:200])
+
+
+def _shell_bash():
+    """bash that reads this checkout -- on Windows not the WSL launcher (System32\\bash.exe: no distro on CI, other paths)"""
+    import os
+    b = _sh.which("bash")
+    if os.name != "nt":
+        return b
+    if b and not any(x in b.replace("/", "\\").lower() for x in ("\\windows\\system32\\", "\\windowsapps\\")):
+        return b
+    for base in (os.environ.get("ProgramFiles"), os.environ.get("ProgramW6432"), os.environ.get("LOCALAPPDATA")):
+        for rel in (("Git", "bin", "bash.exe"), ("Programs", "Git", "bin", "bash.exe")):
+            c = Path(base, *rel) if base else None
+            if c and c.is_file():
+                return str(c)
+    return None
+
+
+_bash = _shell_bash()
+if _bash:      # 파일 이름 + cwd (Windows 경로를 넘기지 않는다). 문법 오류만 실패로 -- 셸을 못 띄운 것은 아니다
+    _r = _sp.run([_bash, "-n", "install.sh"], cwd=str(ROOT), capture_output=True, text=True, encoding="utf-8", errors="replace")
+    _out = (_r.stderr or _r.stdout).strip()
+    if _r.returncode != 0 and ("syntax" in _out.lower() or "unexpected" in _out.lower()):
+        errors.append("install.sh 문법: " + _out[:200])
 for _f in ("install.sh", "install.ps1"):
     _t = (ROOT / _f).read_text(encoding="utf-8-sig")
     for _k in ("--update" if _f.endswith(".sh") else "$Update", "--keep" if _f.endswith(".sh") else "$Keep", ".light-kit", ".history"):
@@ -367,7 +387,10 @@ if [p for p in _dl.rglob("__pycache__")] or list(_dl.rglob("*.db")):
 
 if errors:
     print("FAIL")
+    import os as _os
     for e in errors:
         print("  -", e)
+        if _os.environ.get("GITHUB_ACTIONS"):          # CI 로그를 못 열 때도 주석으로 보인다
+            print("::error::" + e.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A"))
     sys.exit(1)
 print(f"PASS -- 스킬 {len(SKILLS)}개(짝 data-light {_lock.get('version', '?')} 포함), 기록 템플릿 {len(NOTES)}장, 데이터 예시 {len(DATA_EXAMPLES)}개, 링크·인코딩 정상")
