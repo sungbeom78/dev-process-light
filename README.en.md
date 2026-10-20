@@ -21,7 +21,7 @@ the AI says "done" but it doesn't work; there's no easy way back; the AI keeps r
 | `light-save` | after every step (agreement, a chunk of work, check, undo) | adds a line to the work log, commits only this task's files (unfinished work as `중간 저장:` work-in-progress) and updates the notes -- a point you can return to; pushes if you said so once |
 | `light-undo` | when something broke | shows saves in plain words and reverts the chosen one **without deleting history**, then re-checks |
 | `light-manual` | first build, new feature, changed usage | creates or updates the user manual in `manual/` -- HTML slides (a 16:9 page per step, a diagram and a narration script on every page; present, print to PDF or export to pptx) -- in the same save, then **shows it in the chat** |
-| `light-portal` | after each save, "show me the records", or when something breaks | one local HTML file to browse the current state, a one-glance system map (feature → files → tables, tools and their versions), features, data design, decisions (by you / by the AI), work log and saves -- no server, no login. When something breaks, `where` finds the place to fix (feature · files · tables) first |
+| `light-portal` | after each save, "show me the records", "how far along are we?", or when something breaks | the development site with the same pages and addresses as dev-process-framework, light edition (5 pages): 1 overview (to-dos, progress bars) · 2 business (features, works) · 4 data · 9 progress (acceptance criteria, work log, per-feature logs, decisions by you / by the AI, saves) · 10 files (feature → files → tables, parts, tools and their versions). Open `dev-notes/outputs/site/index.html` as a file -- no server, no login, no port. When something breaks, `where` finds the place to fix (feature · files · tables) first |
 | `data-light` (paired) | when data needs storing (linked tables, several users logging in, Excel/CSV, personal info) | designs the tables from a few plain questions, **confirms them with you as a diagram (ERD) and a table**, then checks, rule-tests (SQLite), and builds the spec and SQL (SQLite or Supabase). Personal info goes to separate `pi_` tables; creating a DB or importing files only after you say yes |
 
 `AGENTS.md` adds thirteen rules (the skills and the rule block are never edited inside a project -- put project rules outside the block); the two that matter most: *say so before touching another feature's files*, and
@@ -39,7 +39,7 @@ by `data-light`, and then the light flow continues. The installer installs both.
 | full | dev-process-framework | data-expert-framework |
 | how the pair is pinned | this repo ships `data-light` **byte-for-byte at a pinned commit** in `kit/skills/data-light` ([`data-light.lock.json`](data-light.lock.json), updated with `scripts/update_data_light.py`) | git submodule |
 
-Current pair: **data-light 0.7.0** (data-expert-framework-light `9fa702a`).
+Current pair: **data-light 0.8.0** (data-expert-framework-light `37b994d`).
 Questions are asked once (the five lines in `NOW.md`), task cards carry a `데이터:` (data) line, one canonical file `data/model.light.json`
 feeds the ERD/spec/SQL (for Supabase including real row-level-security policies from `signup` and per-table `access`), `light-check` runs the `datalight.py verify` gate (design check, success goals, rule tests, fresh outputs, data-loss guard), `light-save` commits it as `데이터:`, and real data (`data/app.db`,
 source spreadsheets, `.env`) is never committed. Walkthrough: [`examples/club-dues/`](examples/club-dues/WALKTHROUGH.md) (Korean).

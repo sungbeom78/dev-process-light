@@ -75,7 +75,7 @@ for f in ("assets/manual.css", "assets/manual.js", "templates/index.html", "temp
     if not (LM / f).is_file():
         errors.append(f"light-manual/{f} 없음")
 LP = KIT / "skills" / "light-portal"
-for f in ("portal_tool.py", "templates/portal.html"):
+for f in ("portal_tool.py", "templates/portal.html"):       # templates/portal.html 은 예전 모양 (build --legacy)
     if not (LP / f).is_file():
         errors.append(f"light-portal/{f} 없음")
 if "## 설정" not in (KIT / "dev-notes" / "NOW.md").read_text(encoding="utf-8"):
@@ -100,7 +100,7 @@ with _tempfile.TemporaryDirectory() as _d:
     (_root / "dev-notes" / "log" / "할-일").mkdir(parents=True)
     (_root / "dev-notes" / "log" / "할-일" / "2026-10-11.md").write_text(
         "# 할 일 -- 2026-10-11\n\n## 목록\n- #1 10:00 [확인] 새로고침 -- 실패\n\n## 자세히\n### #1 10:00 [확인]\n- 오류: x\n", encoding="utf-8")
-    _rep = portal_tool.build(_root, Path("dev-notes/portal.html"))
+    _rep = portal_tool.build_page(_root, Path("dev-notes/portal.html"))           # 예전 모양 (build --legacy)
     _html = (_root / "dev-notes" / "portal.html").read_text(encoding="utf-8")
     _m = re.search(r'<script type="application/json" id="data">(.*?)</script>', _html, re.S)
     if not _m or "__DATA__" in _html:
@@ -124,6 +124,60 @@ with _tempfile.TemporaryDirectory() as _d:
             errors.append("light-portal: 데이터 설계의 샘플 값이 페이지에 들어감 (구조만 담는다)")
     if "dev-notes/portal.html" not in (_root / ".gitignore").read_text(encoding="utf-8"):
         errors.append("light-portal: .gitignore 에 넣지 않음")
+    # 개발 관리 사이트 (가벼운 판 5쪽 -- 전문판과 같은 쪽 번호 · 주소 · 머리, 파일로 연다, 주소 · 포트 · 이메일 없음)
+    with open(_root / "dev-notes" / "LOG.md", "a", encoding="utf-8") as _f:
+        _f.write("- 2026-10-11 10:05 · 확인 · 할 일 · http://localhost:5173/todo 에서 확인, 문의 a.b@example.com · 통과 · AI\n")
+    (_root / "dev-notes" / "portal.html").unlink()
+    _np = _root / "dev-notes" / "NOW.md"
+    _np.write_text(_np.read_text(encoding="utf-8").replace("## 지금 작업\n(없음)\n", "## 지금 작업\n### 작업: 할 일 목록\n- 목표: 할 일을 적고 지운다\n"
+                   "- 완료 기준:\n  - [x] 적으면 목록에 보인다\n  - [ ] 새로고침해도 남는다\n- 건드릴 기능: 할 일\n- 진행: 확인 중\n", 1), encoding="utf-8")
+    with open(_root / "dev-notes" / "DECISIONS.md", "a", encoding="utf-8") as _f:
+        _f.write("- 2026-10-11 [사용자] 할 일은 브라우저에 -- \"브라우저면 돼\"\n")
+    _rep = portal_tool.build(_root, "dev-notes/portal.html")                    # 예전 설정 -- 그 파일은 사이트로 가는 바로가기
+    _site = _root / "dev-notes" / "outputs" / "site"
+    _sj = _json.loads((_site / "data" / "site.json").read_text(encoding="utf-8"))
+    if [(x["no"], x["id"], x["href"]) for x in _sj["menu"]] != [(1, "overview", ""), (2, "business", "business/"), (4, "data", "data/"),
+                                                                 (9, "progress", "progress/"), (10, "files", "files/")]:
+        errors.append(f"light-portal 사이트: 메뉴가 사양의 가벼운 판 5쪽이 아님 ({_sj['menu']})")
+    if (_sj["framework"], _sj["level"], _sj["framework_version"]) != ("dev-light", "light", portal_tool.VERSION):
+        errors.append("light-portal 사이트: 판 · 수준 · 버전이 맞지 않음")
+    if (_root / "dev-notes" / "outputs" / ".gitignore").read_text(encoding="utf-8").strip().splitlines()[-1] != "*":
+        errors.append("light-portal 사이트: dev-notes/outputs/ 에 .gitignore(*) 가 없음")
+    if "outputs/site/index.html" not in (_root / "dev-notes" / "portal.html").read_text(encoding="utf-8"):
+        errors.append("light-portal 사이트: 예전 위치(dev-notes/portal.html)가 사이트로 가지 않음")
+    _all = "\n".join(f.read_text(encoding="utf-8") for f in _site.rglob("*") if f.suffix in (".json", ".js", ".html"))
+    if re.search(r"localhost:\d|127\.0\.0\.1:\d|a\.b@example\.com", _all):
+        errors.append("light-portal 사이트: 실제 주소 · 포트 · 이메일이 사이트에 들어감")
+    if any("<script>" in f.read_text(encoding="utf-8") for f in _site.rglob("*.html")):
+        errors.append("light-portal 사이트: 쪽에 인라인 스크립트가 있음 (화면 틀의 CSP)")
+    _pg = {k: _json.loads((_site / "data" / f"{k}.json").read_text(encoding="utf-8")) for k in ("overview", "business", "data", "progress", "files")}
+    for _k, _v in _pg.items():
+        if _v.get("outputs_version") != 1 or _v.get("framework") != "dev-light" or not _v["body"]["sections"]:
+            errors.append(f"light-portal 사이트: {_k} 쪽 머리가 사양과 다름")
+    _flow = next(x for x in _pg["progress"]["body"]["sections"] if x.get("id") == "flow")
+    if not any("</script><b>x</b>" in _json.dumps(r, ensure_ascii=False) for r in _flow["rows"]):
+        errors.append("light-portal 사이트: 작업 기록 흐름을 담지 못함 (글은 글 그대로)")
+    if not (_site / "progress" / "log" / "1" / "index.html").is_file() or "#1 10:00 [확인] 새로고침 -- 실패" not in (_site / "data" / "progress" / "log" / "1.json").read_text(encoding="utf-8"):
+        errors.append("light-portal 사이트: 기능별 기록 쪽(progress/log/1)이 없음")
+    _crit = next((x for x in _pg["progress"]["body"]["sections"] if x.get("id") == "criteria"), {})
+    if [(i["text"], i["badge"]) for i in _crit.get("items", [])] != [("적으면 목록에 보인다", "확인함"), ("새로고침해도 남는다", "아직")]:
+        errors.append(f"light-portal 사이트: 지금 작업의 완료 기준을 읽지 못함 ({_crit})")
+    if not any(t.get("text") == "확인 전: 새로고침해도 남는다" for t in _pg["overview"]["body"]["sections"][0]["items"]):
+        errors.append("light-portal 사이트: 개요의 지금 할 일에 확인 전인 완료 기준이 없음")
+    _dec = next(x for x in _pg["progress"]["body"]["sections"] if x.get("id") == "decisions")["rows"]
+    if [(d["date"], d["by"]["t"], d["what"], d["why"]) for d in _dec] != [("2026-10-11", "사용자", "할 일은 브라우저에", "\"브라우저면 돼\"")]:
+        errors.append(f"light-portal 사이트: 결정 기록을 읽지 못함 (보기 줄 YYYY 는 빼고) ({_dec})")
+    if not any(x.get("id") == "t-customer" for x in _pg["data"]["body"]["sections"]):
+        errors.append("light-portal 사이트: 4 데이터 쪽을 data-light 에서 받지 못함")
+    if [x.get("id") for x in _pg["business"]["body"]["sections"]][:2] != ["features", "works"]:
+        errors.append("light-portal 사이트: 2 업무 설명이 기능 + 하는 일이 아님")
+    (_root / "data" / "model.light.json").unlink()
+    portal_tool.build(_root)
+    if _json.loads((_site / "data" / "data.json").read_text(encoding="utf-8"))["body"]["sections"][0]["kind"] != "empty":
+        errors.append("light-portal 사이트: 데이터 설계가 없을 때 4 데이터가 '만드는 법'이 아님")
+_top = re.search(r"^## (\d+\.\d+\.\d+)", (ROOT / "CHANGELOG.md").read_text(encoding="utf-8"), re.M)
+if not _top or _top.group(1) != portal_tool.VERSION:
+    errors.append(f"light-portal: portal_tool.VERSION({portal_tool.VERSION}) 이 CHANGELOG 맨 위({_top and _top.group(1)})와 다름")
 # 내 시스템 한눈에 · 고칠 곳 찾기 -- 예시의 기능 지도에서 (파일 이름이 든 오류 글 → 그 기능, 함께 쓰는 파일은 그 파일만, 쓰는 도구는 파일에서)
 _home = ROOT / "examples" / "my-homepage"
 _w = portal_tool.where(_home, "Uncaught TypeError: x is null at todo.js:42")
