@@ -4,7 +4,7 @@
 - **새 버전 반영이 원칙, 직접 고친 것은 묻는다** (소유자 원칙 2026-10-20: "프레임워크가 변경되면 로컬 파일이 있어도 반영하는 걸 원칙으로 한다.
   다만 결정은 사용자에게 맡긴다 ... 차이가 발생할 경우 무조건 물어볼 수 있도록") -- 설치기(`install.sh` · `install.ps1`)가 직접 고친 스킬 폴더와
   `AGENTS.md` 규칙 블록을 **말없이 덮지 않는다**: 지난번에 설치한 그대로거나 손대지 않은 예전 판(`kit/.history`)이면 새 버전으로 바꾸고, 고친 것은
-  `[물어볼 것]` 으로 알린 뒤 3 으로 끝난다. 사용자가 고른 대로 `--update <이름|all>`(지금 것은 `.light-backup/` 에) · `--keep <이름|all>`
+  `[물어볼 것]` 으로 알린 뒤 3 으로 끝난다. 사용자가 고른 대로 `--update <이름|all>`(지금 것은 `.claude/skills/.light-backup/` 에) · `--keep <이름|all>`
   (PowerShell 은 `-Update` · `-Keep`). 기록은 `.claude/skills/.light-kit` -- 고른 것은 그대로인 동안 다시 묻지 않는다
 - 지문은 셋이 같은 셈법 (`install.sh` · `install.ps1` · `scripts/kit_hash.py`, 줄바꿈 CRLF 는 같은 것으로). `check_kit` 이 `kit/.history` 가 지금 판을 담는지 본다
 - bash 설치기가 CRLF 로 바뀐 `AGENTS.md` 의 블록을 갱신하지 못하던 것 ('갱신'이라고 알리고 예전 블록이 그대로였다). BOM 이 붙은 `AGENTS.md` 도 알아본다
@@ -12,6 +12,8 @@
 - 백업은 `.claude/skills/.light-backup/` (데이터 검사 · CI 가 보지 않는 곳). 백업하지 못하면 바꾸지 않는다. 이름은 쉼표로 여럿 · 모르는 이름은 멈춘다
 - 지문은 OS 가 만드는 파일(`.DS_Store` · `Thumbs.db` · `desktop.ini`)과 심링크를 뺀다 (셋이 같게). PowerShell 은 UTF-8 이 아닌 `AGENTS.md` 를 바꾸지 않고 묻는다
 - `light-resume` '다시 설치한 뒤': 설치기 · `hook install` 의 '물어볼 것'을 사용자에게 보이고 고르게 한다 (지운 CI 파일을 말없이 두지 않는다)
+- Windows: PowerShell 설치기의 지문이 짧은 이름(`RUNNER~1`)이 든 폴더에서 어긋나 설치한 스킬이 모두 '직접 고침'으로 보이던 것 (상대 경로를 이름으로 잇는다) ·
+  `check_kit` 이 System32 의 WSL `bash` 를 부르던 것 (Git Bash 로). 시험 실패는 CI 주석으로도 남긴다
 - 짝 스킬 data-light 를 **0.9.0** (data-expert-framework-light `701e50e`) 으로 -- `hook install` 도 직접 고친 CI 파일 · 지운 `.gitignore` 줄을 묻는다
 
 ## 0.15.1 -- 2026-10-20
