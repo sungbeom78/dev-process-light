@@ -2,7 +2,7 @@
 
 **A lightweight working agreement for building your own multi-feature website with an AI coding agent -- so it doesn't break as it grows.**
 Seven Agent Skills for Claude Code and Codex, five plain-Markdown notes, a user manual that grows with the site, a local page to browse the records,
-and a **paired data-design skill, `data-light`** ([data-expert-framework-light](https://github.com/sungbeom78/data-expert-framework-light)), that takes over when the site starts storing data.
+and a **paired data-design skill, `data-light`** ([data-expert-framework-light](https://github.com/edubeom/data-expert-framework-light)), that takes over when the site starts storing data.
 Nothing to install besides git (Python only for the data checks, the manual review and the records page).
 
 [한국어](README.md)
@@ -39,18 +39,18 @@ by `data-light`, and then the light flow continues. The installer installs both.
 | full | dev-process-framework | data-expert-framework |
 | how the pair is pinned | this repo ships `data-light` **byte-for-byte at a pinned commit** in `kit/skills/data-light` ([`data-light.lock.json`](data-light.lock.json), updated with `scripts/update_data_light.py`) | git submodule |
 
-Current pair: **data-light 0.10.1** (data-expert-framework-light `ced5ff8`).
+Current pair: **data-light 0.10.1** (data-expert-framework-light `6f371af`).
 Questions are asked once (the five lines in `NOW.md`), task cards carry a `데이터:` (data) line, one canonical file `data/model.light.json`
 feeds the ERD/spec/SQL (for Supabase including real row-level-security policies from `signup` and per-table `access`), `light-check` runs the `datalight.py verify` gate (design check, success goals, rule tests, fresh outputs, data-loss guard), `light-save` commits it as `데이터:`, and real data (`data/app.db`,
 source spreadsheets, `.env`) is never committed. Walkthrough: [`examples/club-dues/`](examples/club-dues/WALKTHROUGH.md) (Korean).
 
 ## Install
 Easiest: open your project in Claude Code or Codex and say
-*"Read INSTALL.md at https://github.com/sungbeom78/dev-process-light and install it into this project."*
+*"Read INSTALL.md at https://github.com/edubeom/dev-process-light and install it into this project."*
 
 Or with git:
 ```bash
-git clone --depth 1 https://github.com/sungbeom78/dev-process-light.git ~/dev-process-light
+git clone --depth 1 https://github.com/edubeom/dev-process-light.git ~/dev-process-light
 bash ~/dev-process-light/install.sh <your-project>
 # Windows PowerShell: powershell -ExecutionPolicy Bypass -File $HOME\dev-process-light\install.ps1 <your-project>
 ```

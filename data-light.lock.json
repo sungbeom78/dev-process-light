@@ -1,10 +1,10 @@
 {
   "about": "kit/skills/data-light 는 아래 커밋의 skills/data-light 와 LICENSE 를 바이트 그대로 담은 사본이다. 고치지 않는다 -- 원본(data-expert-framework-light)에서 고치고 scripts/update_data_light.py 로만 바꾼다.",
-  "repo": "https://github.com/sungbeom78/data-expert-framework-light",
-  "commit": "ced5ff82aa095e50de887f436cc3528a9a1b75a3",
+  "repo": "https://github.com/edubeom/data-expert-framework-light",
+  "commit": "6f371aff7b4f5a8721079a41889d0491647a50e7",
   "version": "0.10.1",
   "files": {
-    "LICENSE": "1743f5d2438e89ddce3f4c25fdff39d9d27b94821bd367274135b87ae69b767e",
+    "LICENSE": "f690395b713d1dae8e37c786f6e0de9e58ade91da0b5e2d7845cf2315c3f12fd",
     "SKILL.md": "2fcc4c7acbdfcb9f31178f67881669de5f1479ff990aeb797b1cea2f164a2d92",
     "examples/shop/README.md": "b61a6b85d7b8d349ecc2fa1f5bd3f218acc93e71cd3461bfaece418c9685fb54",
     "examples/shop/data/model.light.json": "08a736f7b486725bf280bab26e840b3b362e60089e66b33b5ec46519ee3dcd08",
@@ -14,16 +14,16 @@
     "examples/shop/data/out/spec.md": "8c0aa57bb62b553e8b827f2ed8444e991ebf9afc1999d43203f37081d7542526",
     "references/format.md": "e882a02572b5372b6a1bd6a16c8b15760c8062dc47088c0930cdcb709c9c7517",
     "references/guide.md": "5f367f886a44aaa6930e20f615f23425b1a9c96ebb20dbff8be173604145fee8",
-    "references/with-dev-process-light.md": "1beb8807254eff14d1fee5ca71003010580c909fb31f5c8cc38681b85dd7daad",
+    "references/with-dev-process-light.md": "11f0021fdfa147ab72dc29fcf597c27bbd5e953f85e87830080a344824738e3f",
     "scripts/datalight.py": "992f1f185894bd47bd6db880d7159a436e82551e96dffea3f0c9f25c8c31cf2d",
-    "site/NOTICE.md": "80655fbb792fc654d0f0c733a4de09f3567f635dd338c2640b9ac60d5b04ab5f",
-    "site/shell.lock.json": "b926a764d07bf0b856acc001ad02d88646494d228103b459010307a86597451b",
+    "site/NOTICE.md": "10e490ecadda5ba938fce2fc44a22a2426515f3a7c7a7ff614da391485cc6b89",
+    "site/shell.lock.json": "30bcf705be8a58db8c78bcf5b2a6605e1e4b836493b33d5372ef06b08e025e1d",
     "site/shell/README.md": "3ab40c106b488070eb7a08a412d1a71e24767c80bd4de9a1f90d6854326779b5",
     "site/shell/VERSION": "7d072b48526b023950e4c48db01e8c273554a6401119f5691e7589ba9bc65d9d",
     "site/shell/assets/shell.css": "323cc7a22e71a9a553b86808a7fa1092a33f469b4fecbabf16b8a30af71c0377",
     "site/shell/assets/shell.js": "baf3cff08442b4d096773263a9d84d81bdcf3d90e8c22bfe780817152208f88b",
     "site/shell/page.html": "0daa34764a884e4f4837385cb3547f2903ea985aa333d9523674c78e0de831ea",
-    "viewer/NOTICE.md": "db0f6a9c8ff756b83aec8945dbf566d1e887f2dda82d69a4051f21eea250087c",
+    "viewer/NOTICE.md": "8965a90e9a18be677350bed982572e8b4e77886d5196789ae61c73fb81d57a72",
     "viewer/dataviewer/__init__.py": "7d745c3a3fcde5b9e8157d360ba0b16c5435df8e803d2bd5411763ef8cf54d48",
     "viewer/dataviewer/__main__.py": "3bbe39c0a90d29aa277fae29ce10f9188585677b520d721596479f8a4096b9f8",
     "viewer/dataviewer/layout.py": "afde85e444e36c0115e37aeaabbb7facdb6cf859ae8f0658f6092e05efe97a84",
@@ -31,6 +31,6 @@
     "viewer/dataviewer/sources.py": "339fea93e82caf3bcd576138afbcbe0d69686d1abac0aa23e319e44da27c7fcd",
     "viewer/dataviewer/static/erdlayout.js": "6cce25333b95a4f60af843c94ae8ac5dc8ba62f30a0a45bbb083d07e8787189d",
     "viewer/dataviewer/static/viewer.html": "cc426e0ac43a346cabff9f1856370c7c61a84bf47630416ea60e74e85cd1e80b",
-    "viewer/viewer.lock.json": "d6806ffe761abf7af54d28bf21bfff35bf1c6cf416afa240d119703d89b572aa"
+    "viewer/viewer.lock.json": "f58e2ab927d5ae2508880a6caa1e475e315c51be3a88bd3052f06a2cb1a08f13"
   }
 }

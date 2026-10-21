@@ -1,6 +1,6 @@
 """data-light 짝 버전 관리 (관리자용 -- 사용자는 필요 없음).
 
-dev-process-light 는 데이터 설계 스킬 data-light(sungbeom78/data-expert-framework-light)를 **정해 둔 커밋 그대로**
+dev-process-light 는 데이터 설계 스킬 data-light(edubeom/data-expert-framework-light)를 **정해 둔 커밋 그대로**
 kit/skills/data-light 에 담아 함께 설치한다. dev-process-framework 가 data-expert-framework 를 서브모듈로 고정하는 것과
 같은 짝이다. 서브모듈 대신 사본을 담는 이유: ZIP 으로 받거나(서브모듈이 빠진다) AI 가 파일을 직접 만드는 설치(INSTALL.md
 방법 B)에서도 빠짐없이 깔리게.
@@ -34,7 +34,7 @@ except Exception:  # noqa: BLE001
 ROOT = Path(__file__).resolve().parents[1]
 DEST = ROOT / "kit" / "skills" / "data-light"
 LOCK = ROOT / "data-light.lock.json"
-REPO = "https://github.com/sungbeom78/data-expert-framework-light"
+REPO = "https://github.com/edubeom/data-expert-framework-light"
 SRC_DIR = "skills/data-light"
 ABOUT = ("kit/skills/data-light 는 아래 커밋의 skills/data-light 와 LICENSE 를 바이트 그대로 담은 사본이다. "
          "고치지 않는다 -- 원본(data-expert-framework-light)에서 고치고 scripts/update_data_light.py 로만 바꾼다.")

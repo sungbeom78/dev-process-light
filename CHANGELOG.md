@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## 저장소 이전 -- 2026-10-21 (버전 그대로 0.17.1)
+- 소유자를 sungbeom78 → **edubeom** 으로 옮겼다 (원본 `edubeom/dev-process-light`). 주소 · 저작권자 · 플러그인 작성자를 바꿈, 짝 data-light 사본을 새 주소의 `6f371af` 로 다시 담음
+
 ## 0.17.1 -- 2026-10-20
 - 짝 스킬 data-light 를 **0.10.1** (data-expert-framework-light `ced5ff8`) 으로 -- 공개 독립 검토 반영: 공개본에서 화면 틀 프로그램이 깨지던 것 · 캐시의 예전 자료 ·
   `.../index.html` 링크 · 답 원문의 포트 · 이메일 · 비밀값 · 늘 `gh-pages` · 쓰다 멈춘 공개를 이어서 · 화면 틀 1.4.1
@@ -187,7 +190,7 @@
   0.8.0 부터 이미 고친 코드를 담아 왔으므로 설치된 프로젝트는 할 일이 없다 (다시 설치하면 버전 표시만 바뀐다)
 
 ## 0.8.0 -- 2026-10-14
-- **짝 스킬 `data-light`** ([data-expert-framework-light](https://github.com/sungbeom78/data-expert-framework-light) 0.2.0, `cbbd258`) --
+- **짝 스킬 `data-light`** ([data-expert-framework-light](https://github.com/edubeom/data-expert-framework-light) 0.2.0, `cbbd258`) --
   dev-process-framework ↔ data-expert-framework 처럼 가벼운 판도 짝을 맞춘다. 저장할 데이터가 생기면 데이터부터 설계하고 돌아온다
   - 함께 설치: `kit/skills/data-light` 에 원본 커밋을 **바이트 그대로** 담는다 (ZIP·파일 직접 만들기 설치에서도 빠지지 않게 서브모듈 대신 사본).
     `data-light.lock.json`(저장소·커밋·버전·파일 해시), `scripts/update_data_light.py`(`--ref`·`--from`·`--check`·`--upstream`),

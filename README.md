@@ -2,7 +2,7 @@
 
 **AI와 함께 나만의 홈페이지를 만들 때, 만들수록 망가지지 않게 해 주는 가벼운 작업 규칙.**
 Claude Code · Codex 에서 쓰는 스킬 7개와 기록 파일 5장, 저절로 쌓이는 사용설명서와 기록 보기 페이지, 그리고 저장할 데이터가 생기면
-이어 받는 **짝 데이터 설계 스킬 `data-light`**([data-expert-framework-light](https://github.com/sungbeom78/data-expert-framework-light)).
+이어 받는 **짝 데이터 설계 스킬 `data-light`**([data-expert-framework-light](https://github.com/edubeom/data-expert-framework-light)).
 설치할 프로그램은 없습니다 (마크다운 + git, 데이터 검사·페이지·설명서 검토에만 파이썬).
 
 [English](README.en.md)
@@ -73,7 +73,7 @@ AI는 설명서의 **따라 하기를 실제로 해 보고** 저장한 뒤, 바�
 | 전문판 | dev-process-framework | data-expert-framework |
 | 짝을 묶는 법 | 이 저장소가 `data-light` 를 **정해 둔 커밋 그대로** `kit/skills/data-light` 에 담아 함께 설치 ([`data-light.lock.json`](data-light.lock.json)) | 전문판은 서브모듈로 고정 |
 
-지금 짝 버전: **data-light 0.10.1** (data-expert-framework-light `ced5ff8`).
+지금 짝 버전: **data-light 0.10.1** (data-expert-framework-light `6f371af`).
 
 어떻게 이어지나요:
 - **질문은 한 번만** -- 누가 쓰나·로그인·올리는 곳·개인정보는 `NOW.md` 의 다섯 줄에 한 번 적고, 어느 스킬도 다시 묻지 않습니다.
@@ -97,12 +97,12 @@ data-light 만 따로 쓰고 싶으면 그 저장소의 플러그인으로 설�
 
 **가장 쉬운 방법** -- 만들고 있는 프로젝트 폴더에서 Claude Code(또는 Codex)를 열고:
 ```
-https://github.com/sungbeom78/dev-process-light 의 INSTALL.md 를 읽고 이 프로젝트에 설치해 줘
+https://github.com/edubeom/dev-process-light 의 INSTALL.md 를 읽고 이 프로젝트에 설치해 줘
 ```
 
 **직접 설치** -- git 이 있다면:
 ```bash
-git clone --depth 1 https://github.com/sungbeom78/dev-process-light.git ~/dev-process-light
+git clone --depth 1 https://github.com/edubeom/dev-process-light.git ~/dev-process-light
 bash ~/dev-process-light/install.sh <내 프로젝트 폴더>
 ```
 Windows PowerShell 이면 마지막 줄을 이렇게:
